@@ -4,6 +4,25 @@ import { dbHelpers } from '../../services/database';
 import type { CalendarEntry, Activity, DateReminder } from '../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
 import { notificationService } from '../../services/notifications';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Select,
+    MenuItem,
+    Button,
+    FormControl,
+    InputLabel,
+    Box,
+    Card,
+    CardContent,
+    Typography,
+    IconButton,
+    Divider,
+    Chip,
+} from '@mui/material';
 import './CalendarScreen.css';
 
 const CalendarScreen: React.FC = () => {
@@ -31,7 +50,10 @@ const CalendarScreen: React.FC = () => {
 
     const hasEntry = (date: Date): boolean => {
         const dateStr = format(date, 'yyyy-MM-dd');
-        return calendarEntries?.some(entry => entry.date === dateStr) || false;
+        const entry = calendarEntries?.find(entry => entry.date === dateStr);
+        if (!entry) return false;
+        // Only show indicator if there are actual activities or reminders
+        return !!((entry.activities && entry.activities.length > 0) || (entry.reminders && entry.reminders.length > 0));
     };
 
     const getEntryForDate = (date: Date): CalendarEntry | undefined => {
@@ -267,141 +289,330 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
     };
 
     return (
-        <div className="date-detail-panel">
-            <div className="panel-header">
-                <h2>{format(date, 'MMMM d, yyyy')}</h2>
-                <button className="close-button" onClick={onClose}>×</button>
-            </div>
+        <>
+            <Dialog
+                open={true}
+                onClose={onClose}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        maxHeight: '85vh',
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    pb: 1,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider'
+                }}>
+                    <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
+                        {format(date, 'MMMM d, yyyy')}
+                    </Typography>
+                    <IconButton onClick={onClose} size="small" sx={{ color: 'text.secondary' }}>
+                        ✕
+                    </IconButton>
+                </DialogTitle>
 
-            <div className="panel-content">
-                {/* Reminders Section */}
-                <div className="section">
-                    <div className="section-header">
-                        <h3>Reminders & Alarms</h3>
-                        <button className="btn-icon-add" onClick={() => openAddModal('reminder')} title="Add Reminder">
-                            <span>+</span>
-                        </button>
-                    </div>
-                    <div className="reminders-list">
-                        {reminders.map((reminder) => (
-                            <div key={reminder.id} className="reminder-item glass-item">
-                                <span className="item-icon">
-                                    {reminder.type === 'alarm' ? '⏰' : '🔔'}
-                                </span>
-                                <div className="item-content">
-                                    <span className="read-only-subtext">{reminder.time}</span>
-                                    <span className="read-only-text">{reminder.title || 'No Title'}</span>
-                                </div>
-                                <div className="item-actions">
-                                    <button className="action-btn btn-edit" onClick={() => openEditModal('reminder', reminder)}>✎</button>
-                                    <button className="action-btn btn-delete" onClick={() => handleDelete(reminder.id, 'reminder')}>🗑️</button>
-                                </div>
-                            </div>
-                        ))}
-                        {reminders.length === 0 && <p className="empty-message">No reminders set</p>}
-                    </div>
-                </div>
+                <DialogContent sx={{ pt: 3, pb: 2 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {/* Reminders Section */}
+                        <Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                                    ⏰ Reminders & Alarms
+                                </Typography>
+                                <IconButton
+                                    onClick={() => openAddModal('reminder')}
+                                    size="small"
+                                    sx={{
+                                        bgcolor: 'primary.main',
+                                        color: 'white',
+                                        '&:hover': { bgcolor: 'primary.dark' },
+                                        width: 32,
+                                        height: 32
+                                    }}
+                                >
+                                    +
+                                </IconButton>
+                            </Box>
 
-                {/* Activities Section */}
-                <div className="section">
-                    <div className="section-header">
-                        <h3>Activities</h3>
-                        <button className="btn-icon-add" onClick={() => openAddModal('activity')} title="Add Activity">
-                            <span>+</span>
-                        </button>
-                    </div>
-                    <div className="activities-list">
-                        {activities.map((activity) => (
-                            <div key={activity.id} className="activity-item glass-item">
-                                <div className="item-content">
-                                    <span className="read-only-subtext">{activity.type}</span>
-                                    <span className="read-only-text">{activity.description || 'No Description'}</span>
-                                </div>
-                                <div className="item-actions">
-                                    <button className="action-btn btn-edit" onClick={() => openEditModal('activity', activity)}>✎</button>
-                                    <button className="action-btn btn-delete" onClick={() => handleDelete(activity.id, 'activity')}>🗑️</button>
-                                </div>
-                            </div>
-                        ))}
-                        {activities.length === 0 && <p className="empty-message">No activities recorded</p>}
-                    </div>
-                </div>
-            </div>
-
-            {/* Modal */}
-            {isModalOpen && (
-                <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <h3 className="modal-title">
-                            {editingItem ? 'Edit' : 'Add'} {modalCategory === 'activity' ? 'Activity' : 'Reminder'}
-                        </h3>
-                        <div className="modal-form">
-                            {modalCategory === 'activity' ? (
-                                <>
-                                    <label>
-                                        <span className="modal-label">Type</span>
-                                        <select className="modal-select" value={formType} onChange={e => setFormType(e.target.value)}>
-                                            <option value="exercise">Exercise</option>
-                                            <option value="note">Note</option>
-                                            <option value="symptom">Symptom</option>
-                                            <option value="mood">Mood</option>
-                                            <option value="custom">Custom</option>
-                                        </select>
-                                    </label>
-                                    <label>
-                                        <span className="modal-label">Description</span>
-                                        <input
-                                            className="modal-input"
-                                            value={formDescription}
-                                            onChange={e => setFormDescription(e.target.value)}
-                                            placeholder="What did you do?"
-                                            autoFocus
-                                        />
-                                    </label>
-                                </>
+                            {reminders.length === 0 ? (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3, fontStyle: 'italic' }}>
+                                    No reminders set
+                                </Typography>
                             ) : (
-                                <>
-                                    <label>
-                                        <span className="modal-label">Type</span>
-                                        <select className="modal-select" value={formType} onChange={e => setFormType(e.target.value)}>
-                                            <option value="notification">Notification</option>
-                                            <option value="alarm">Alarm</option>
-                                        </select>
-                                    </label>
-                                    <label>
-                                        <span className="modal-label">Time</span>
-                                        <input
-                                            type="time"
-                                            className="modal-input"
-                                            value={formTime}
-                                            onChange={e => setFormTime(e.target.value)}
-                                        />
-                                    </label>
-                                    <label>
-                                        <span className="modal-label">Title</span>
-                                        <input
-                                            className="modal-input"
-                                            value={formDescription}
-                                            onChange={e => setFormDescription(e.target.value)}
-                                            placeholder="Reminder Title"
-                                        />
-                                    </label>
-                                </>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {reminders.map((reminder) => (
+                                        <Card
+                                            key={reminder.id}
+                                            variant="outlined"
+                                            sx={{
+                                                borderRadius: 2,
+                                                transition: 'all 0.2s',
+                                                '&:hover': {
+                                                    boxShadow: 2,
+                                                    borderColor: 'primary.light'
+                                                }
+                                            }}
+                                        >
+                                            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                    <Typography sx={{ fontSize: '1.5rem' }}>
+                                                        {reminder.type === 'alarm' ? '⏰' : '🔔'}
+                                                    </Typography>
+                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                                            {reminder.title || 'No Title'}
+                                                        </Typography>
+                                                        <Chip
+                                                            label={reminder.time}
+                                                            size="small"
+                                                            sx={{
+                                                                bgcolor: 'primary.light',
+                                                                color: 'primary.dark',
+                                                                fontWeight: 600,
+                                                                fontSize: '0.75rem'
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => openEditModal('reminder', reminder)}
+                                                            sx={{ color: 'primary.main' }}
+                                                        >
+                                                            ✎
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => handleDelete(reminder.id, 'reminder')}
+                                                            sx={{ color: 'error.main' }}
+                                                        >
+                                                            🗑️
+                                                        </IconButton>
+                                                    </Box>
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </Box>
                             )}
+                        </Box>
 
-                            <div className="modal-actions">
-                                <button className="modal-btn btn-cancel" onClick={() => setIsModalOpen(false)}>
-                                    ✗
-                                </button>
-                                <button className="modal-btn btn-confirm" onClick={handleModalSave}>
-                                    ✓
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
+                        <Divider />
+
+                        {/* Activities Section */}
+                        <Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                                    📝 Activities
+                                </Typography>
+                                <IconButton
+                                    onClick={() => openAddModal('activity')}
+                                    size="small"
+                                    sx={{
+                                        bgcolor: 'primary.main',
+                                        color: 'white',
+                                        '&:hover': { bgcolor: 'primary.dark' },
+                                        width: 32,
+                                        height: 32
+                                    }}
+                                >
+                                    +
+                                </IconButton>
+                            </Box>
+
+                            {activities.length === 0 ? (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3, fontStyle: 'italic' }}>
+                                    No activities recorded
+                                </Typography>
+                            ) : (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {activities.map((activity) => (
+                                        <Card
+                                            key={activity.id}
+                                            variant="outlined"
+                                            sx={{
+                                                borderRadius: 2,
+                                                transition: 'all 0.2s',
+                                                '&:hover': {
+                                                    boxShadow: 2,
+                                                    borderColor: 'primary.light'
+                                                }
+                                            }}
+                                        >
+                                            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                                            {activity.description || 'No Description'}
+                                                        </Typography>
+                                                        <Chip
+                                                            label={activity.type}
+                                                            size="small"
+                                                            sx={{
+                                                                bgcolor: 'secondary.light',
+                                                                color: 'secondary.dark',
+                                                                fontWeight: 600,
+                                                                fontSize: '0.75rem',
+                                                                textTransform: 'capitalize'
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => openEditModal('activity', activity)}
+                                                            sx={{ color: 'primary.main' }}
+                                                        >
+                                                            ✎
+                                                        </IconButton>
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => handleDelete(activity.id, 'activity')}
+                                                            sx={{ color: 'error.main' }}
+                                                        >
+                                                            🗑️
+                                                        </IconButton>
+                                                    </Box>
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </Box>
+                            )}
+                        </Box>
+                    </Box>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add/Edit Modal */}
+            <Dialog
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        padding: 1,
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    textAlign: 'center',
+                    fontWeight: 700,
+                    fontSize: '1.25rem',
+                    color: 'text.primary',
+                    pb: 1
+                }}>
+                    {editingItem ? 'Edit' : 'Add'} {modalCategory === 'activity' ? 'Activity' : 'Reminder'}
+                </DialogTitle>
+
+                <DialogContent>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+                        {modalCategory === 'activity' ? (
+                            <>
+                                <FormControl fullWidth>
+                                    <InputLabel id="activity-type-label">Type</InputLabel>
+                                    <Select
+                                        labelId="activity-type-label"
+                                        value={formType}
+                                        label="Type"
+                                        onChange={e => setFormType(e.target.value)}
+                                    >
+                                        <MenuItem value="exercise">Exercise</MenuItem>
+                                        <MenuItem value="note">Note</MenuItem>
+                                        <MenuItem value="symptom">Symptom</MenuItem>
+                                        <MenuItem value="mood">Mood</MenuItem>
+                                        <MenuItem value="custom">Custom</MenuItem>
+                                    </Select>
+                                </FormControl>
+
+                                <TextField
+                                    fullWidth
+                                    label="Description"
+                                    value={formDescription}
+                                    onChange={e => setFormDescription(e.target.value)}
+                                    placeholder="What did you do?"
+                                    autoFocus
+                                    multiline
+                                    rows={2}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <FormControl fullWidth>
+                                    <InputLabel id="reminder-type-label">Type</InputLabel>
+                                    <Select
+                                        labelId="reminder-type-label"
+                                        value={formType}
+                                        label="Type"
+                                        onChange={e => setFormType(e.target.value)}
+                                    >
+                                        <MenuItem value="notification">🔔 Notification</MenuItem>
+                                        <MenuItem value="alarm">⏰ Alarm</MenuItem>
+                                    </Select>
+                                </FormControl>
+
+                                <TextField
+                                    fullWidth
+                                    label="Time"
+                                    type="time"
+                                    value={formTime}
+                                    onChange={e => setFormTime(e.target.value)}
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                />
+
+                                <TextField
+                                    fullWidth
+                                    label="Title"
+                                    value={formDescription}
+                                    onChange={e => setFormDescription(e.target.value)}
+                                    placeholder="Reminder Title"
+                                />
+                            </>
+                        )}
+                    </Box>
+                </DialogContent>
+
+                <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
+                    <Button
+                        onClick={() => setIsModalOpen(false)}
+                        variant="outlined"
+                        color="error"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleModalSave}
+                        variant="contained"
+                        color="success"
+                        sx={{
+                            flex: 1,
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            fontWeight: 600
+                        }}
+                    >
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </>
     );
 };
 

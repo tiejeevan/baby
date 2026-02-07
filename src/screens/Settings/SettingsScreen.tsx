@@ -6,7 +6,19 @@ import { validatePregnancyConfig, getLMPDate, calculatePregnancyStatus } from '.
 import type { PregnancyConfig } from '../../types';
 import ReminderSettingsSection from '../../components/ReminderSettings/ReminderSettingsSection';
 import { useTheme, type Theme } from '../../context/ThemeContext';
-import './SettingsScreen.css';
+import {
+    Container,
+    Paper,
+    Typography,
+    TextField,
+    Button,
+    Card,
+    CardContent,
+    Box,
+    Alert,
+    Divider,
+    Stack,
+} from '@mui/material';
 
 const SettingsScreen: React.FC = () => {
     const { theme, setTheme } = useTheme();
@@ -79,106 +91,186 @@ const SettingsScreen: React.FC = () => {
         }
     };
 
+    const themeOptions = [
+        { value: 'day', label: 'Day', gradient: 'linear-gradient(135deg, #fafaf9 0%, #ffffff 100%)' },
+        { value: 'dark', label: 'Dark', gradient: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)' },
+        { value: 'boy', label: 'Boy', gradient: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' },
+        { value: 'girl', label: 'Girl', gradient: 'linear-gradient(135deg, #fff1f2 0%, #fce7f3 100%)' },
+    ];
+
     return (
-        <div className="settings-screen">
-            <div className="settings-section">
-                <h2>Appearance</h2>
-                <div className="theme-grid">
-                    {['day', 'dark', 'boy', 'girl'].map((t) => (
-                        <button
-                            key={t}
-                            className={`theme-card ${theme === t ? 'active' : ''}`}
-                            onClick={() => setTheme(t as Theme)}
-                        >
-                            <div className={`theme-preview theme-${t}`} />
-                            <span className="theme-label">{t.charAt(0).toUpperCase() + t.slice(1)}</span>
-                        </button>
+        <Container maxWidth="md" sx={{ py: 3, pb: 10 }}>
+            {/* Appearance Section */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                <Typography variant="h5" fontWeight={700} gutterBottom>
+                    🎨 Appearance
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 2 }}>
+                    {themeOptions.map((option) => (
+                        <Box key={option.value}>
+                            <Card
+                                onClick={() => setTheme(option.value as Theme)}
+                                sx={{
+                                    cursor: 'pointer',
+                                    border: 2,
+                                    borderColor: theme === option.value ? 'primary.main' : 'transparent',
+                                    transition: 'all 0.2s',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: 4,
+                                    },
+                                }}
+                            >
+                                <CardContent sx={{ textAlign: 'center', p: 2 }}>
+                                    <Box
+                                        sx={{
+                                            width: 56,
+                                            height: 56,
+                                            borderRadius: '50%',
+                                            background: option.gradient,
+                                            margin: '0 auto 12px',
+                                            border: '1px solid rgba(0,0,0,0.1)',
+                                        }}
+                                    />
+                                    <Typography variant="body2" fontWeight={600}>
+                                        {option.label}
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        </Box>
                     ))}
-                </div>
-            </div>
+                </Box>
+            </Paper>
 
-            <div className="settings-section">
-                <h2>Pregnancy Configuration</h2>
-                <p className="section-description">
+            {/* Pregnancy Configuration Section */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                <Typography variant="h5" fontWeight={700} gutterBottom>
+                    🤰 Pregnancy Configuration
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
                     Set your reference date and pregnancy progress. The app will automatically calculate your current week and day.
-                </p>
+                </Typography>
 
-                <div className="form-group">
-                    <label>Reference Date</label>
-                    <input
-                        type="date"
-                        value={formData.referenceDate}
-                        onChange={(e) => setFormData({ ...formData, referenceDate: e.target.value })}
-                    />
-                    <p className="field-help">The date when you knew your pregnancy progress</p>
-                </div>
+                <Stack spacing={3}>
+                    <Box>
+                        <TextField
+                            fullWidth
+                            label="Reference Date"
+                            type="date"
+                            value={formData.referenceDate}
+                            onChange={(e) => setFormData({ ...formData, referenceDate: e.target.value })}
+                            InputLabelProps={{ shrink: true }}
+                            helperText="The date when you knew your pregnancy progress"
+                        />
+                    </Box>
 
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Weeks at Reference Date</label>
-                        <input
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                        <TextField
+                            fullWidth
+                            label="Weeks at Reference Date"
                             type="number"
-                            min="0"
-                            max="42"
+                            inputProps={{ min: 0, max: 42 }}
                             value={formData.referenceWeeks}
                             onChange={(e) => setFormData({ ...formData, referenceWeeks: parseInt(e.target.value) })}
                         />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Days at Reference Date</label>
-                        <input
+                        <TextField
+                            fullWidth
+                            label="Days at Reference Date"
                             type="number"
-                            min="0"
-                            max="6"
+                            inputProps={{ min: 0, max: 6 }}
                             value={formData.referenceDays}
                             onChange={(e) => setFormData({ ...formData, referenceDays: parseInt(e.target.value) })}
                         />
-                    </div>
-                </div>
+                    </Box>
 
-                <p className="example-text">
-                    Example: If on December 19, 2024, you were 8 weeks and 2 days pregnant, enter that date and those values.
-                </p>
+                    <Alert severity="info" sx={{ borderRadius: 2 }}>
+                        <Typography variant="body2">
+                            <strong>Example:</strong> If on December 19, 2024, you were 8 weeks and 2 days pregnant, enter that date and those values.
+                        </Typography>
+                    </Alert>
 
-                <div className="button-group">
-                    <button className="btn-primary" onClick={handleSave}>
-                        Save Settings
-                    </button>
-                    <button className="btn-danger" onClick={handleReset}>
-                        Reset Configuration
-                    </button>
-                </div>
-            </div>
+                    <Stack direction="row" spacing={2} flexWrap="wrap">
+                        <Button
+                            variant="contained"
+                            size="large"
+                            onClick={handleSave}
+                            sx={{
+                                flex: 1,
+                                minWidth: 150,
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                fontWeight: 600,
+                            }}
+                        >
+                            Save Settings
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            size="large"
+                            onClick={handleReset}
+                            sx={{
+                                flex: 1,
+                                minWidth: 150,
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                fontWeight: 600,
+                            }}
+                        >
+                            Reset Configuration
+                        </Button>
+                    </Stack>
+                </Stack>
+            </Paper>
 
             {/* Reminder Settings */}
-            <div className="settings-section">
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
                 <ReminderSettingsSection />
-            </div>
+            </Paper>
 
-            <div className="settings-section">
-                <h2>About</h2>
-                <div className="info-card">
-                    <h3>Pregnancy Tracker</h3>
-                    <p>Version 1.0.0</p>
-                    <p className="about-text">
-                        A private, local-first pregnancy tracking app designed to help you document your journey with complete privacy.
-                        All your data is stored locally on your device.
-                    </p>
-                </div>
-            </div>
+            {/* About Section */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                <Typography variant="h5" fontWeight={700} gutterBottom>
+                    ℹ️ About
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
 
-            <div className="settings-section">
-                <h2>Disclaimer</h2>
-                <div className="disclaimer-card">
-                    <p>
-                        ⚠️ This app is for informational purposes only and is not a substitute for professional medical advice,
+                <Card variant="outlined" sx={{ bgcolor: 'background.default', borderRadius: 2 }}>
+                    <CardContent>
+                        <Typography variant="h6" color="primary" gutterBottom>
+                            Pregnancy Tracker
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" gutterBottom>
+                            Version 1.0.0
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, mt: 1 }}>
+                            A private, local-first pregnancy tracking app designed to help you document your journey with complete privacy.
+                            All your data is stored locally on your device.
+                        </Typography>
+                    </CardContent>
+                </Card>
+            </Paper>
+
+            {/* Disclaimer Section */}
+            <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
+                <Typography variant="h5" fontWeight={700} gutterBottom>
+                    ⚠️ Disclaimer
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                <Alert severity="warning" sx={{ borderRadius: 2 }}>
+                    <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                        This app is for informational purposes only and is not a substitute for professional medical advice,
                         diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with
                         any questions you may have regarding your pregnancy or medical condition.
-                    </p>
-                </div>
-            </div>
-        </div>
+                    </Typography>
+                </Alert>
+            </Paper>
+        </Container>
     );
 };
 

@@ -3,7 +3,21 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dbHelpers } from '../../services/database';
 import ReminderPlugin from '../../plugins/reminder-plugin';
 import type { ReminderSettings, CustomReminder } from '../../types';
-import './ReminderSettingsSection.css';
+import {
+    Typography,
+    Switch,
+    TextField,
+    Button,
+    Card,
+    CardContent,
+    Box,
+    Stack,
+    Divider,
+    IconButton,
+    Checkbox,
+    FormControlLabel,
+    Chip,
+} from '@mui/material';
 
 const ReminderSettingsSection: React.FC = () => {
     const savedSettings = useLiveQuery(() => dbHelpers.getReminderSettings());
@@ -398,173 +412,227 @@ const ReminderSettingsSection: React.FC = () => {
     };
 
     return (
-        <div className="reminder-settings-section">
-            <h2>Daily Reminders</h2>
-            <p className="section-description">
+        <Box>
+            <Typography variant="h5" fontWeight={700} gutterBottom>
+                ⏰ Daily Reminders
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3, lineHeight: 1.6 }}>
                 Set up daily reminders to help you stay on track with your pregnancy routine
-            </p>
+            </Typography>
 
             {/* Medication Reminder */}
-            <div className="reminder-item">
-                <div className="reminder-header">
-                    <div className="reminder-info">
-                        <h3>💊 Medication Reminder</h3>
-                        <p>Daily reminder for prenatal vitamins and medications</p>
-                    </div>
-                    <label className="toggle-switch">
-                        <input
-                            type="checkbox"
+            <Card variant="outlined" sx={{ mb: 2, borderRadius: 2 }}>
+                <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" gutterBottom>
+                                💊 Medication Reminder
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Daily reminder for prenatal vitamins and medications
+                            </Typography>
+                        </Box>
+                        <Switch
                             checked={settings.medicationEnabled}
                             onChange={(e) => handleToggleMedication(e.target.checked)}
                         />
-                        <span className="toggle-slider"></span>
-                    </label>
-                </div>
-                {settings.medicationEnabled && (
-                    <div className="reminder-details">
-                        <div className="reminder-time">
-                            <label>Reminder Time:</label>
-                            <input
+                    </Box>
+
+                    {settings.medicationEnabled && (
+                        <Stack spacing={2} sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                            <TextField
+                                label="Reminder Time"
                                 type="time"
                                 value={settings.medicationTime}
                                 onChange={(e) => handleTimeChange('medication', e.target.value)}
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                                sx={{ maxWidth: 200 }}
                             />
-                        </div>
-                        <label className="alarm-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={settings.medicationAlarm}
-                                onChange={(e) => handleAlarmChange('medication', e.target.checked)}
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={settings.medicationAlarm}
+                                        onChange={(e) => handleAlarmChange('medication', e.target.checked)}
+                                    />
+                                }
+                                label="🔔 Play Alarm Sound"
                             />
-                            <span>🔔 Play Alarm Sound</span>
-                        </label>
-                    </div>
-                )}
-            </div>
+                        </Stack>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Exercise Reminder */}
-            <div className="reminder-item">
-                <div className="reminder-header">
-                    <div className="reminder-info">
-                        <h3>🏃‍♀️ Exercise Reminder</h3>
-                        <p>Daily reminder for pregnancy-safe exercises</p>
-                    </div>
-                    <label className="toggle-switch">
-                        <input
-                            type="checkbox"
+            <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
+                <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                        <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" gutterBottom>
+                                🏃‍♀️ Exercise Reminder
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                Daily reminder for pregnancy-safe exercises
+                            </Typography>
+                        </Box>
+                        <Switch
                             checked={settings.exerciseEnabled}
                             onChange={(e) => handleToggleExercise(e.target.checked)}
                         />
-                        <span className="toggle-slider"></span>
-                    </label>
-                </div>
-                {settings.exerciseEnabled && (
-                    <div className="reminder-details">
-                        <div className="reminder-time">
-                            <label>Reminder Time:</label>
-                            <input
+                    </Box>
+
+                    {settings.exerciseEnabled && (
+                        <Stack spacing={2} sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+                            <TextField
+                                label="Reminder Time"
                                 type="time"
                                 value={settings.exerciseTime}
                                 onChange={(e) => handleTimeChange('exercise', e.target.value)}
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                                sx={{ maxWidth: 200 }}
                             />
-                        </div>
-                        <label className="alarm-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={settings.exerciseAlarm}
-                                onChange={(e) => handleAlarmChange('exercise', e.target.checked)}
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={settings.exerciseAlarm}
+                                        onChange={(e) => handleAlarmChange('exercise', e.target.checked)}
+                                    />
+                                }
+                                label="🔔 Play Alarm Sound"
                             />
-                            <span>🔔 Play Alarm Sound</span>
-                        </label>
-                    </div>
-                )}
-            </div>
+                        </Stack>
+                    )}
+                </CardContent>
+            </Card>
 
             {/* Custom Reminders */}
-            <div className="custom-reminders-section">
-                <div className="custom-reminders-header">
-                    <h3>Custom Reminders</h3>
-                    <button className="btn-secondary btn-small" onClick={() => setShowAddCustom(!showAddCustom)}>
+            <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6" fontWeight={600}>
+                        Custom Reminders
+                    </Typography>
+                    <Button
+                        variant={showAddCustom ? "outlined" : "contained"}
+                        size="small"
+                        onClick={() => setShowAddCustom(!showAddCustom)}
+                        sx={{ textTransform: 'none' }}
+                    >
                         {showAddCustom ? 'Cancel' : '+ Add Custom'}
-                    </button>
-                </div>
+                    </Button>
+                </Box>
 
                 {showAddCustom && (
-                    <div className="add-custom-reminder">
-                        <input
-                            type="text"
-                            placeholder="Reminder title (e.g., Drink water)"
-                            value={newCustomReminder.title}
-                            onChange={(e) => setNewCustomReminder({ ...newCustomReminder, title: e.target.value })}
-                            className="custom-reminder-input"
-                        />
-                        <div className="custom-reminder-options">
-                            <input
-                                type="time"
-                                value={newCustomReminder.time}
-                                onChange={(e) => setNewCustomReminder({ ...newCustomReminder, time: e.target.value })}
-                            />
-                            <label className="alarm-checkbox-small">
-                                <input
-                                    type="checkbox"
-                                    checked={newCustomReminder.isAlarm}
-                                    onChange={(e) => setNewCustomReminder({ ...newCustomReminder, isAlarm: e.target.checked })}
+                    <Card variant="outlined" sx={{ mb: 2, borderRadius: 2, bgcolor: 'action.hover' }}>
+                        <CardContent>
+                            <Stack spacing={2}>
+                                <TextField
+                                    fullWidth
+                                    placeholder="Reminder title (e.g., Drink water)"
+                                    value={newCustomReminder.title}
+                                    onChange={(e) => setNewCustomReminder({ ...newCustomReminder, title: e.target.value })}
+                                    size="small"
                                 />
-                                <span>🔔 Alarm</span>
-                            </label>
-                        </div>
-                        <button className="btn-primary btn-small" onClick={handleAddCustomReminder}>
-                            Add Reminder
-                        </button>
-                    </div>
+                                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                                    <TextField
+                                        label="Time"
+                                        type="time"
+                                        value={newCustomReminder.time}
+                                        onChange={(e) => setNewCustomReminder({ ...newCustomReminder, time: e.target.value })}
+                                        InputLabelProps={{ shrink: true }}
+                                        size="small"
+                                        sx={{ maxWidth: 150 }}
+                                    />
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={newCustomReminder.isAlarm}
+                                                onChange={(e) => setNewCustomReminder({ ...newCustomReminder, isAlarm: e.target.checked })}
+                                                size="small"
+                                            />
+                                        }
+                                        label="🔔 Alarm"
+                                    />
+                                </Box>
+                                <Button
+                                    variant="contained"
+                                    onClick={handleAddCustomReminder}
+                                    sx={{ textTransform: 'none', alignSelf: 'flex-start' }}
+                                >
+                                    Add Reminder
+                                </Button>
+                            </Stack>
+                        </CardContent>
+                    </Card>
                 )}
 
                 {settings.customReminders.length > 0 && (
-                    <div className="custom-reminders-list">
+                    <Stack spacing={1.5}>
                         {settings.customReminders.map((reminder) => (
-                            <div key={reminder.id} className="custom-reminder-item">
-                                <div className="custom-reminder-content">
-                                    <span className="custom-reminder-title">{reminder.title}</span>
-                                    <div className="custom-reminder-meta">
-                                        <span className="custom-reminder-time">{reminder.time}</span>
-                                        {reminder.isAlarm && <span className="alarm-badge">🔔</span>}
-                                    </div>
-                                </div>
-                                <div className="custom-reminder-actions">
-                                    <label className="alarm-checkbox-tiny" title="Toggle Alarm Sound">
-                                        <input
-                                            type="checkbox"
-                                            checked={reminder.isAlarm || false}
-                                            onChange={(e) => handleCustomAlarmChange(reminder.id, e.target.checked)}
-                                        />
-                                        <span>🔔</span>
-                                    </label>
-                                    <label className="toggle-switch toggle-switch-small">
-                                        <input
-                                            type="checkbox"
-                                            checked={reminder.enabled}
-                                            onChange={(e) => handleToggleCustomReminder(reminder.id, e.target.checked)}
-                                        />
-                                        <span className="toggle-slider"></span>
-                                    </label>
-                                    <button
-                                        className="btn-icon-delete"
-                                        onClick={() => handleDeleteCustomReminder(reminder.id)}
-                                        title="Delete reminder"
-                                    >
-                                        🗑️
-                                    </button>
-                                </div>
-                            </div>
+                            <Card key={reminder.id} variant="outlined" sx={{ borderRadius: 2 }}>
+                                <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="body1" fontWeight={500}>
+                                                {reminder.title}
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 0.5 }}>
+                                                <Chip
+                                                    label={reminder.time}
+                                                    size="small"
+                                                    sx={{ height: 20, fontSize: '0.75rem' }}
+                                                />
+                                                {reminder.isAlarm && (
+                                                    <Chip
+                                                        label="🔔"
+                                                        size="small"
+                                                        sx={{ height: 20, fontSize: '0.75rem' }}
+                                                    />
+                                                )}
+                                            </Box>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <FormControlLabel
+                                                control={
+                                                    <Checkbox
+                                                        checked={reminder.isAlarm || false}
+                                                        onChange={(e) => handleCustomAlarmChange(reminder.id, e.target.checked)}
+                                                        size="small"
+                                                    />
+                                                }
+                                                label="🔔"
+                                                sx={{ mr: 0, '& .MuiFormControlLabel-label': { fontSize: '1rem' } }}
+                                            />
+                                            <Switch
+                                                checked={reminder.enabled}
+                                                onChange={(e) => handleToggleCustomReminder(reminder.id, e.target.checked)}
+                                                size="small"
+                                            />
+                                            <IconButton
+                                                onClick={() => handleDeleteCustomReminder(reminder.id)}
+                                                size="small"
+                                                color="error"
+                                                title="Delete reminder"
+                                            >
+                                                🗑️
+                                            </IconButton>
+                                        </Box>
+                                    </Box>
+                                </CardContent>
+                            </Card>
                         ))}
-                    </div>
+                    </Stack>
                 )}
 
                 {settings.customReminders.length === 0 && !showAddCustom && (
-                    <p className="empty-state">No custom reminders yet. Click "+ Add Custom" to create one.</p>
+                    <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3, fontStyle: 'italic' }}>
+                        No custom reminders yet. Click "+ Add Custom" to create one.
+                    </Typography>
                 )}
-            </div>
-        </div>
+            </Box>
+        </Box>
     );
 };
 
