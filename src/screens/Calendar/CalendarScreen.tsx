@@ -165,6 +165,7 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
 
     // File upload state
     const [isUploading, setIsUploading] = useState(false);
+    const [previewAttachment, setPreviewAttachment] = useState<FileAttachment | null>(null);
 
     // Sync state when entry updates
     useEffect(() => {
@@ -648,6 +649,11 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                                                     {/* Thumbnail or Icon */}
                                                     <Box
+                                                        onClick={() => {
+                                                            if (attachment.type.startsWith('image/')) {
+                                                                setPreviewAttachment(attachment);
+                                                            }
+                                                        }}
                                                         sx={{
                                                             width: 48,
                                                             height: 48,
@@ -657,7 +663,13 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
                                                             display: 'flex',
                                                             alignItems: 'center',
                                                             justifyContent: 'center',
-                                                            flexShrink: 0
+                                                            flexShrink: 0,
+                                                            cursor: attachment.type.startsWith('image/') ? 'pointer' : 'default',
+                                                            '&:hover': attachment.type.startsWith('image/') ? {
+                                                                opacity: 0.8,
+                                                                transform: 'scale(1.05)',
+                                                                transition: 'all 0.2s'
+                                                            } : {}
                                                         }}
                                                     >
                                                         {attachment.type.startsWith('image/') ? (
@@ -828,6 +840,65 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Image Preview Modal */}
+            {previewAttachment && (
+                <Dialog
+                    open={true}
+                    onClose={() => setPreviewAttachment(null)}
+                    maxWidth="lg"
+                    fullWidth
+                    PaperProps={{
+                        sx: {
+                            borderRadius: 3,
+                            bgcolor: 'rgba(0, 0, 0, 0.9)',
+                            maxHeight: '90vh',
+                        }
+                    }}
+                >
+                    <DialogTitle sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        pb: 1,
+                        color: 'white'
+                    }}>
+                        <Typography variant="h6" component="div" sx={{ fontWeight: 600, color: 'white' }}>
+                            {previewAttachment.name}
+                        </Typography>
+                        <IconButton onClick={() => setPreviewAttachment(null)} size="small" sx={{ color: 'white' }}>
+                            ✕
+                        </IconButton>
+                    </DialogTitle>
+
+                    <DialogContent sx={{ p: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <FullImagePreview attachment={previewAttachment} />
+                    </DialogContent>
+
+                    <DialogActions sx={{ px: 3, pb: 2 }}>
+                        <Typography variant="caption" sx={{ color: 'grey.400', flex: 1 }}>
+                            {formatFileSize(previewAttachment.size)}
+                        </Typography>
+                        <Button
+                            onClick={() => setPreviewAttachment(null)}
+                            variant="outlined"
+                            sx={{
+                                borderRadius: 2,
+                                textTransform: 'none',
+                                fontWeight: 600,
+                                color: 'white',
+                                borderColor: 'white',
+                                '&:hover': {
+                                    borderColor: 'grey.300',
+                                    bgcolor: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }}
+                        >
+                            Close
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            )}
         </>
     );
 };
@@ -840,8 +911,9 @@ const FilePreview: React.FC<{ attachment: FileAttachment }> = ({ attachment }) =
         const loadImage = async () => {
             try {
                 const path = attachment.thumbnail || attachment.filepath;
-                const url = await storageService.getFileUri(path);
-                setImageUrl(url);
+                // Use readFile to get base64 data URL which works in web browsers
+                const dataUrl = await storageService.readFile(path, attachment.type);
+                setImageUrl(dataUrl);
             } catch (error) {
                 console.error('Failed to load image:', error);
             }
@@ -861,6 +933,57 @@ const FilePreview: React.FC<{ attachment: FileAttachment }> = ({ attachment }) =
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover'
+            }}
+        />
+    );
+};
+
+// Helper component for full-size image preview
+const FullImagePreview: React.FC<{ attachment: FileAttachment }> = ({ attachment }) => {
+    const [imageUrl, setImageUrl] = useState<string>('');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadImage = async () => {
+            try {
+                setLoading(true);
+                // Use readFile to get base64 data URL which works in web browsers
+                const dataUrl = await storageService.readFile(attachment.filepath, attachment.type);
+                setImageUrl(dataUrl);
+            } catch (error) {
+                console.error('Failed to load full image:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadImage();
+    }, [attachment]);
+
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+                <Typography sx={{ color: 'white', fontSize: '1.2rem' }}>Loading...</Typography>
+            </Box>
+        );
+    }
+
+    if (!imageUrl) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+                <Typography sx={{ color: 'white', fontSize: '1.2rem' }}>Failed to load image</Typography>
+            </Box>
+        );
+    }
+
+    return (
+        <img
+            src={imageUrl}
+            alt={attachment.name}
+            style={{
+                maxWidth: '100%',
+                maxHeight: '70vh',
+                objectFit: 'contain',
+                borderRadius: '8px'
             }}
         />
     );
