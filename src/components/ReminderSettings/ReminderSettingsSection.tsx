@@ -386,6 +386,15 @@ const ReminderSettingsSection: React.FC = () => {
     const handleDeleteCustomReminder = async (reminderId: string) => {
         const reminder = settings.customReminders.find(r => r.id === reminderId);
 
+        // Ask for confirmation before deleting
+        const confirmed = window.confirm(
+            `Are you sure you want to delete the reminder "${reminder?.title}"?\n\nThis action cannot be undone.`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
         if (reminder?.notificationId) {
             try {
                 await ReminderPlugin.cancelReminder({ reminderId: reminder.notificationId });

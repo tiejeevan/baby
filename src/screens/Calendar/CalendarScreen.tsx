@@ -277,6 +277,25 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
     };
 
     const handleDelete = (id: string, category: 'activity' | 'reminder') => {
+        // Find the item to get its details for the confirmation message
+        let itemName = '';
+        if (category === 'activity') {
+            const activity = activities.find(a => a.id === id);
+            itemName = activity?.description || 'this activity';
+        } else {
+            const reminder = reminders.find(r => r.id === id);
+            itemName = reminder?.title || 'this reminder';
+        }
+
+        // Ask for confirmation before deleting
+        const confirmed = window.confirm(
+            `Are you sure you want to delete "${itemName}"?\n\nThis action cannot be undone.`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
         if (category === 'activity') {
             const newActivities = activities.filter(a => a.id !== id);
             setActivities(newActivities);
