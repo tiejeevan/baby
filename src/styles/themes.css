@@ -1,0 +1,56 @@
+/* Blue Baby Boy Theme */
+[data-theme='boy'] {
+    --color-primary: #3b82f6;
+    --color-primary-light: #93c5fd;
+    --color-primary-dark: #1d4ed8;
+    --color-secondary: #64748b;
+    --color-accent: #0ea5e9;
+    --color-bg-primary: #eff6ff;
+    --color-bg-secondary: #ffffff;
+    --color-bg-tertiary: #dbeafe;
+    --color-text-primary: #1e3a8a;
+    --color-text-secondary: #475569;
+    --color-text-tertiary: #94a3b8;
+}
+
+/* Pink Baby Girl Theme */
+[data-theme='girl'] {
+    --color-primary: #db2777;
+    --color-primary-light: #fbcfe8;
+    --color-primary-dark: #be185d;
+    --color-secondary: #f472b6;
+    --color-accent: #ec4899;
+    --color-bg-primary: #fff1f2;
+    --color-bg-secondary: #ffffff;
+    --color-bg-tertiary: #fce7f3;
+    --color-text-primary: #be185d;
+    --color-text-secondary: #db2777;
+    --color-text-tertiary: #fbcfe8;
+}
+
+/* Dark Theme */
+[data-theme='dark'] {
+    --color-primary: #8b5cf6;
+    --color-primary-light: #a78bfa;
+    --color-primary-dark: #7c3aed;
+    --color-secondary: #4b5563;
+    --color-accent: #c4b5fd;
+    --color-bg-primary: #111827;
+    --color-bg-secondary: #1f2937;
+    --color-bg-tertiary: #374151;
+    --color-text-primary: #f9fafb;
+    --color-text-secondary: #d1d5db;
+    --color-text-tertiary: #9ca3af;
+    --color-border: #4b5563;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Day Theme (Default/Light) - Explicit override if needed */
+[data-theme='day'] {
+    /* Uses default :root variables from global.css */
+    --color-bg-primary: #fafaf9;
+    --color-bg-secondary: #ffffff;
+    --color-text-primary: #1a1a1a;
+}
