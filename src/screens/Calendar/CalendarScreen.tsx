@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbHelpers } from '../../services/database';
-import type { CalendarEntry, Activity, DateReminder } from '../../types';
+import type { CalendarEntry, Activity, DateReminder, FileAttachment } from '../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
 import { notificationService } from '../../services/notifications';
+import { storageService } from '../../services/storage';
 import {
     Dialog,
     DialogTitle,
@@ -150,6 +151,7 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
     // Activities and Reminders State
     const [activities, setActivities] = useState<Activity[]>(entry?.activities || []);
     const [reminders, setReminders] = useState<DateReminder[]>(entry?.reminders || []);
+    const [attachments, setAttachments] = useState<FileAttachment[]>(entry?.attachments || []);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -161,14 +163,18 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
     const [formDescription, setFormDescription] = useState<string>(''); // Used for title/desc
     const [formTime, setFormTime] = useState<string>('');
 
+    // File upload state
+    const [isUploading, setIsUploading] = useState(false);
+
     // Sync state when entry updates
     useEffect(() => {
         setActivities(entry?.activities || []);
         setReminders(entry?.reminders || []);
+        setAttachments(entry?.attachments || []);
     }, [entry]);
 
     // Auto-save function
-    const saveToDb = async (newActivities: Activity[], newReminders: DateReminder[]) => {
+    const saveToDb = async (newActivities: Activity[], newReminders: DateReminder[], newAttachments: FileAttachment[]) => {
         const dateStr = format(date, 'yyyy-MM-dd');
 
         // Handle Notification cancellations
@@ -199,6 +205,7 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
             notes: entry?.notes || '',
             activities: newActivities,
             reminders: updatedReminders,
+            attachments: newAttachments,
             photoIds: entry?.photoIds || [],
             createdAt: entry?.createdAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
@@ -253,7 +260,7 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
                 newActivities = [...activities, newItem];
             }
             setActivities(newActivities);
-            saveToDb(newActivities, reminders);
+            saveToDb(newActivities, reminders, attachments);
 
         } else {
             const newItem: DateReminder = {
@@ -271,7 +278,7 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
                 newReminders = [...reminders, newItem];
             }
             setReminders(newReminders);
-            saveToDb(activities, newReminders);
+            saveToDb(activities, newReminders, attachments);
         }
         setIsModalOpen(false);
     };
@@ -299,11 +306,82 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
         if (category === 'activity') {
             const newActivities = activities.filter(a => a.id !== id);
             setActivities(newActivities);
-            saveToDb(newActivities, reminders);
+            saveToDb(newActivities, reminders, attachments);
         } else {
             const newReminders = reminders.filter(r => r.id !== id);
             setReminders(newReminders);
-            saveToDb(activities, newReminders);
+            saveToDb(activities, newReminders, attachments);
+        }
+    };
+
+    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        setIsUploading(true);
+
+        try {
+            const newAttachments: FileAttachment[] = [];
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileId = `${Date.now()}_${i}`;
+
+                // Save file using storage service
+                const { filepath, thumbnail } = await storageService.saveFile(
+                    file,
+                    fileId,
+                    file.name,
+                    file.type
+                );
+
+                const attachment: FileAttachment = {
+                    id: fileId,
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    filepath,
+                    thumbnail,
+                    uploadedAt: new Date().toISOString(),
+                };
+
+                newAttachments.push(attachment);
+            }
+
+            const updatedAttachments = [...attachments, ...newAttachments];
+            setAttachments(updatedAttachments);
+            await saveToDb(activities, reminders, updatedAttachments);
+        } catch (error) {
+            console.error('Failed to upload files:', error);
+            alert('Failed to upload files. Please try again.');
+        } finally {
+            setIsUploading(false);
+            // Reset input
+            event.target.value = '';
+        }
+    };
+
+    const handleDeleteAttachment = async (attachmentId: string) => {
+        const attachment = attachments.find(a => a.id === attachmentId);
+        if (!attachment) return;
+
+        const confirmed = window.confirm(
+            `Are you sure you want to delete "${attachment.name}"?\n\nThis action cannot be undone.`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            // Delete from storage
+            await storageService.deleteFile(attachment.filepath, attachment.thumbnail);
+
+            // Update state and database
+            const updatedAttachments = attachments.filter(a => a.id !== attachmentId);
+            setAttachments(updatedAttachments);
+            await saveToDb(activities, reminders, updatedAttachments);
+        } catch (error) {
+            console.error('Failed to delete attachment:', error);
+            alert('Failed to delete file. Please try again.');
         }
     };
 
@@ -506,6 +584,125 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
                                 </Box>
                             )}
                         </Box>
+
+                        <Divider />
+
+                        {/* File Attachments Section */}
+                        <Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                                    📎 Pictures & Files
+                                </Typography>
+                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                    {isUploading && (
+                                        <Typography variant="caption" color="primary" sx={{ fontStyle: 'italic' }}>
+                                            Uploading...
+                                        </Typography>
+                                    )}
+                                    <Button
+                                        component="label"
+                                        size="small"
+                                        variant="contained"
+                                        disabled={isUploading}
+                                        sx={{
+                                            bgcolor: 'primary.main',
+                                            color: 'white',
+                                            '&:hover': { bgcolor: 'primary.dark' },
+                                            textTransform: 'none',
+                                            fontWeight: 600,
+                                            px: 2
+                                        }}
+                                    >
+                                        + Add Files
+                                        <input
+                                            type="file"
+                                            hidden
+                                            multiple
+                                            accept="image/*,application/pdf,.doc,.docx,.txt"
+                                            onChange={handleFileUpload}
+                                        />
+                                    </Button>
+                                </Box>
+                            </Box>
+
+                            {attachments.length === 0 ? (
+                                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3, fontStyle: 'italic' }}>
+                                    No files attached
+                                </Typography>
+                            ) : (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {attachments.map((attachment) => (
+                                        <Card
+                                            key={attachment.id}
+                                            variant="outlined"
+                                            sx={{
+                                                borderRadius: 2,
+                                                transition: 'all 0.2s',
+                                                '&:hover': {
+                                                    boxShadow: 2,
+                                                    borderColor: 'primary.light'
+                                                }
+                                            }}
+                                        >
+                                            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                                    {/* Thumbnail or Icon */}
+                                                    <Box
+                                                        sx={{
+                                                            width: 48,
+                                                            height: 48,
+                                                            borderRadius: 1,
+                                                            overflow: 'hidden',
+                                                            bgcolor: 'grey.100',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            flexShrink: 0
+                                                        }}
+                                                    >
+                                                        {attachment.type.startsWith('image/') ? (
+                                                            <FilePreview attachment={attachment} />
+                                                        ) : (
+                                                            <Typography sx={{ fontSize: '1.5rem' }}>
+                                                                {attachment.type.includes('pdf') ? '📄' : '📎'}
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
+
+                                                    {/* File Info */}
+                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                        <Typography
+                                                            variant="body2"
+                                                            sx={{
+                                                                fontWeight: 600,
+                                                                mb: 0.5,
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap'
+                                                            }}
+                                                        >
+                                                            {attachment.name}
+                                                        </Typography>
+                                                        <Typography variant="caption" color="text.secondary">
+                                                            {formatFileSize(attachment.size)}
+                                                        </Typography>
+                                                    </Box>
+
+                                                    {/* Delete Button */}
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => handleDeleteAttachment(attachment.id)}
+                                                        sx={{ color: 'error.main' }}
+                                                    >
+                                                        🗑️
+                                                    </IconButton>
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </Box>
+                            )}
+                        </Box>
                     </Box>
                 </DialogContent>
             </Dialog>
@@ -633,6 +830,49 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
             </Dialog>
         </>
     );
+};
+
+// Helper component for file preview
+const FilePreview: React.FC<{ attachment: FileAttachment }> = ({ attachment }) => {
+    const [imageUrl, setImageUrl] = useState<string>('');
+
+    useEffect(() => {
+        const loadImage = async () => {
+            try {
+                const path = attachment.thumbnail || attachment.filepath;
+                const url = await storageService.getFileUri(path);
+                setImageUrl(url);
+            } catch (error) {
+                console.error('Failed to load image:', error);
+            }
+        };
+        loadImage();
+    }, [attachment]);
+
+    if (!imageUrl) {
+        return <Typography sx={{ fontSize: '1.5rem' }}>🖼️</Typography>;
+    }
+
+    return (
+        <img
+            src={imageUrl}
+            alt={attachment.name}
+            style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+            }}
+        />
+    );
+};
+
+// Helper function to format file size
+const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 };
 
 export default CalendarScreen;

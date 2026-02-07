@@ -5,6 +5,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
  */
 
 const PHOTO_DIRECTORY = 'pregnancy-photos';
+const FILES_DIRECTORY = 'pregnancy-files';
 
 export const storageService = {
     /**
@@ -146,6 +147,132 @@ export const storageService = {
      * Get file URI for displaying in img tags
      */
     async getPhotoUri(filepath: string): Promise<string> {
+        const result = await Filesystem.getUri({
+            path: filepath,
+            directory: Directory.Data,
+        });
+        return result.uri;
+    },
+
+    /**
+     * Save a file from base64 data or File object
+     */
+    async saveFile(
+        data: string | File,
+        fileId: string,
+        fileName: string,
+        mimeType: string
+    ): Promise<{ filepath: string; thumbnail?: string }> {
+        await this.initializeFileStorage();
+
+        let base64Data: string;
+        let extension = fileName.split('.').pop() || 'bin';
+
+        if (typeof data === 'string') {
+            // Remove data URL prefix if present
+            base64Data = data.replace(/^data:[^;]+;base64,/, '');
+        } else {
+            // Convert File to base64
+            base64Data = await this.fileToBase64(data);
+        }
+
+        // Save file
+        const filepath = `${FILES_DIRECTORY}/${fileId}.${extension}`;
+        await Filesystem.writeFile({
+            path: filepath,
+            data: base64Data,
+            directory: Directory.Data,
+        });
+
+        let thumbnail: string | undefined;
+
+        // Create thumbnail for images
+        if (mimeType.startsWith('image/')) {
+            try {
+                const thumbnailData = await this.createThumbnail(base64Data);
+                const thumbnailPath = `${FILES_DIRECTORY}/${fileId}_thumb.jpg`;
+                await Filesystem.writeFile({
+                    path: thumbnailPath,
+                    data: thumbnailData,
+                    directory: Directory.Data,
+                });
+                thumbnail = thumbnailPath;
+            } catch (error) {
+                console.error('Failed to create thumbnail:', error);
+            }
+        }
+
+        return { filepath, thumbnail };
+    },
+
+    /**
+     * Initialize file directory
+     */
+    async initializeFileStorage(): Promise<void> {
+        try {
+            await Filesystem.mkdir({
+                path: FILES_DIRECTORY,
+                directory: Directory.Data,
+                recursive: true,
+            });
+        } catch (error) {
+            console.log('File directory already exists or created');
+        }
+    },
+
+    /**
+     * Convert File object to base64
+     */
+    async fileToBase64(file: File): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result as string;
+                // Remove data URL prefix
+                const base64 = result.split(',')[1];
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    },
+
+    /**
+     * Read a file and return as base64 data URL
+     */
+    async readFile(filepath: string, mimeType: string): Promise<string> {
+        const result = await Filesystem.readFile({
+            path: filepath,
+            directory: Directory.Data,
+        });
+        return `data:${mimeType};base64,${result.data}`;
+    },
+
+    /**
+     * Delete a file
+     */
+    async deleteFile(filepath: string, thumbnailPath?: string): Promise<void> {
+        try {
+            await Filesystem.deleteFile({
+                path: filepath,
+                directory: Directory.Data,
+            });
+
+            if (thumbnailPath) {
+                await Filesystem.deleteFile({
+                    path: thumbnailPath,
+                    directory: Directory.Data,
+                });
+            }
+        } catch (error) {
+            console.error('Failed to delete file:', error);
+        }
+    },
+
+    /**
+     * Get file URI for displaying/downloading
+     */
+    async getFileUri(filepath: string): Promise<string> {
         const result = await Filesystem.getUri({
             path: filepath,
             directory: Directory.Data,

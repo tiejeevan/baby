@@ -41,6 +41,16 @@ export interface DateReminder {
     notificationId?: number;
 }
 
+export interface FileAttachment {
+    id: string;
+    name: string;
+    type: string; // MIME type
+    size: number; // bytes
+    filepath: string; // Storage path
+    thumbnail?: string; // Thumbnail path for images
+    uploadedAt: string;
+}
+
 export interface CalendarEntry {
     id?: number;
     date: string; // ISO date string (YYYY-MM-DD)
@@ -48,6 +58,7 @@ export interface CalendarEntry {
     photoIds: string[];
     activities: Activity[];
     reminders?: DateReminder[];
+    attachments?: FileAttachment[]; // New field for file attachments
     createdAt: string;
     updatedAt: string;
 }
