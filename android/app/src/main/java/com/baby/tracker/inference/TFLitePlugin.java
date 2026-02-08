@@ -24,7 +24,7 @@ public class TFLitePlugin extends Plugin {
 
     @PluginMethod
     public void initializeModel(PluginCall call) {
-        String modelPath = call.getString("modelPath", "gemma-2b-it-cpu-int8.task");
+        String modelPath = call.getString("modelPath", "gemma-3-270m-it-int8.task");
         
         try {
             boolean success = inference.initialize(modelPath);
@@ -208,17 +208,27 @@ public class TFLitePlugin extends Plugin {
 
         try {
             // Build conversation context
+            StringBuilder systemContext = new StringBuilder();
             StringBuilder conversationContext = new StringBuilder();
+            
             for (int i = 0; i < messages.length(); i++) {
                 org.json.JSONObject msg = messages.getJSONObject(i);
                 String role = msg.getString("role");
                 String content = msg.getString("content");
                 
-                if ("user".equals(role)) {
+                if ("system".equals(role)) {
+                    // Collect system messages as context/instructions
+                    systemContext.append(content).append("\n\n");
+                } else if ("user".equals(role)) {
                     conversationContext.append("User: ").append(content).append("\n");
                 } else if ("assistant".equals(role)) {
                     conversationContext.append("Assistant: ").append(content).append("\n");
                 }
+            }
+            
+            // Prepend system context to the conversation
+            if (systemContext.length() > 0) {
+                conversationContext.insert(0, "Instructions:\n" + systemContext.toString() + "\nConversation:\n");
             }
             conversationContext.append("Assistant: ");
             

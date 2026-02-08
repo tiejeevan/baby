@@ -13,7 +13,7 @@ export interface AIConfig {
 }
 
 const DEFAULT_CONFIG: AIConfig = {
-    maxTokens: 512,
+    maxTokens: 256,  // Reduced to prevent memory issues
     temperature: 0.7,
     systemPrompt: `You are a helpful AI assistant for a pregnancy tracking app. 
 You provide supportive, accurate, and empathetic information about pregnancy, health, and wellness.
@@ -39,7 +39,7 @@ class AIService {
             }
 
             const result = await TFLitePlugin.initializeModel({
-                modelPath: 'gemma-2b-it-cpu-int8.task'
+                modelPath: 'gemma-3-270m-it-int8.task'
             });
             
             this.modelInitialized = result.success;
@@ -88,11 +88,14 @@ class AIService {
             // Get pregnancy context
             const context = await this.getPregnancyContext();
             
+            // Limit conversation history to last 3 messages to reduce memory usage
+            const recentHistory = conversationHistory.slice(-3);
+            
             // Build messages with system prompt and context
             const messages: Message[] = [
                 { role: 'system', content: this.config.systemPrompt },
                 { role: 'system', content: context },
-                ...conversationHistory,
+                ...recentHistory,
                 { role: 'user', content: userMessage }
             ];
 
@@ -109,6 +112,13 @@ class AIService {
             }
         } catch (error) {
             console.error('Error generating AI response:', error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            
+            // Check for memory-related errors
+            if (errorMsg.toLowerCase().includes('memory')) {
+                return "I'm running low on memory. Please try a shorter message or restart the app.";
+            }
+            
             return "An error occurred while processing your message. Please try again.";
         }
     }
