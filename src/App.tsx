@@ -5,6 +5,7 @@ import AppLayout from './components/Layout/AppLayout';
 import HomeScreen from './screens/Home/HomeScreen';
 import TimelineScreen from './screens/Timeline/TimelineScreen';
 import CalendarScreen from './screens/Calendar/CalendarScreen';
+import ChatScreen from './screens/Chat/ChatScreen';
 import SettingsScreen from './screens/Settings/SettingsScreen';
 import OnboardingScreen from './screens/Onboarding/OnboardingScreen';
 import { notificationService } from './services/notifications';
@@ -108,6 +109,7 @@ function App() {
             <Route index element={<HomeScreen />} />
             <Route path="timeline" element={<TimelineScreen />} />
             <Route path="calendar" element={<CalendarScreen />} />
+            <Route path="chat" element={<ChatScreen />} />
             <Route path="settings" element={<SettingsScreen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

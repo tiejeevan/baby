@@ -144,3 +144,10 @@ export interface CustomReminder {
     isAlarm?: boolean; // Play alarm sound
 }
 
+
+export interface ChatMessage {
+    id?: number;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    createdAt: string;
+}

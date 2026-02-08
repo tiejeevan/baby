@@ -5,6 +5,7 @@ import { dbHelpers } from '../../services/database';
 import { validatePregnancyConfig, getLMPDate, calculatePregnancyStatus } from '../../services/pregnancy-calculator';
 import type { PregnancyConfig } from '../../types';
 import ReminderSettingsSection from '../../components/ReminderSettings/ReminderSettingsSection';
+import AISettingsComponent from '../../components/AISettings/AISettingsComponent';
 import { useTheme, type Theme } from '../../context/ThemeContext';
 import {
     Container,
@@ -230,6 +231,11 @@ const SettingsScreen: React.FC = () => {
             {/* Reminder Settings */}
             <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
                 <ReminderSettingsSection />
+            </Paper>
+
+            {/* AI Assistant Settings */}
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+                <AISettingsComponent />
             </Paper>
 
             {/* About Section */}

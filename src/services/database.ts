@@ -7,6 +7,7 @@ import type {
     Medication,
     Photo,
     ReminderSettings,
+    ChatMessage,
 } from '../types';
 
 export class PregnancyDatabase extends Dexie {
@@ -17,11 +18,12 @@ export class PregnancyDatabase extends Dexie {
     medications!: Table<Medication, number>;
     photos!: Table<Photo, string>;
     reminderSettings!: Table<ReminderSettings, number>;
+    chatMessages!: Table<ChatMessage, number>;
 
     constructor() {
         super('PregnancyTrackerDB');
 
-        this.version(2).stores({
+        this.version(3).stores({
             pregnancyConfig: '++id, referenceDate, createdAt',
             milestones: '++id, type, date, createdAt',
             calendarEntries: '++id, date, createdAt',
@@ -29,6 +31,7 @@ export class PregnancyDatabase extends Dexie {
             medications: '++id, name, startDate, endDate',
             photos: 'id, date, associatedWith, associatedId, createdAt',
             reminderSettings: '++id, createdAt',
+            chatMessages: '++id, createdAt',
         });
     }
 }
@@ -222,5 +225,18 @@ export const dbHelpers = {
             return existing.id;
         }
         return await db.reminderSettings.add(settings as ReminderSettings);
+    },
+
+    // Chat Messages
+    async getChatMessages(limit = 50): Promise<ChatMessage[]> {
+        return await db.chatMessages.orderBy('createdAt').reverse().limit(limit).reverse().toArray();
+    },
+
+    async addChatMessage(message: Omit<ChatMessage, 'id'>): Promise<number> {
+        return await db.chatMessages.add(message as ChatMessage);
+    },
+
+    async clearChatHistory(): Promise<void> {
+        await db.chatMessages.clear();
     },
 };
