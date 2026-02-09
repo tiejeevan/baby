@@ -1,12 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { dbHelpers } from '../../services/database';
-import { calculatePregnancyStatus, getTrimester, getDaysUntilDue } from '../../services/pregnancy-calculator';
+import { useNavigate } from 'react-router-dom';
+import { calculatePregnancyStatus, getTrimester, getDaysUntilDue, getLMPDate } from '../../services/pregnancy-calculator';
 import type { CurrentPregnancyStatus } from '../../types';
+import pregnancyPlan from '../../data/pregnancy_plan.json';
+import { addDays } from 'date-fns';
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    Button,
+    IconButton,
+    Box,
+    Typography,
+    Card,
+    CardContent,
+    Chip,
+
+} from '@mui/material';
 import './HomeScreen.css';
 
 const HomeScreen: React.FC = () => {
+    const navigate = useNavigate();
     const [status, setStatus] = useState<CurrentPregnancyStatus | null>(null);
+    const [isPlanOpen, setIsPlanOpen] = useState(false);
 
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
     const upcomingAppointments = useLiveQuery(() => dbHelpers.getUpcomingAppointments(3));
@@ -116,7 +134,200 @@ const HomeScreen: React.FC = () => {
                     </p>
                 </div>
             </div>
-        </div>
+
+
+            <Box sx={{ p: 2, pb: 4, display: 'flex', justifyContent: 'center' }}>
+                <Button
+                    variant="contained"
+                    onClick={() => setIsPlanOpen(true)}
+                    sx={{
+                        bgcolor: 'primary.main',
+                        color: 'white',
+                        borderRadius: 4,
+                        px: 4,
+                        py: 1.5,
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        '&:hover': {
+                            bgcolor: 'primary.dark',
+                            boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+                        }
+                    }}
+                >
+                    📅 View Full Pregnancy Plan
+                </Button>
+            </Box>
+
+            <Dialog
+                open={isPlanOpen}
+                onClose={() => setIsPlanOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 3,
+                        maxHeight: '85vh',
+                        bgcolor: '#fafafa'
+                    }
+                }}
+            >
+                <DialogTitle sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'white',
+                    pb: 2,
+                    pt: 3
+                }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                        Pregnancy Journey Map
+                    </Typography>
+                    <IconButton onClick={() => setIsPlanOpen(false)} size="small" sx={{ color: 'text.secondary' }}>
+                        ✕
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent sx={{ p: 0 }}>
+                    <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {pregnancyPlan.map((item, index) => {
+                            const isCompleted = status ? item.week < status.weeks : false;
+                            const isCurrent = status ? item.week === status.weeks : false;
+
+                            // Calculate target date for this week
+                            let targetDate: Date | null = null;
+                            if (config) {
+                                try {
+                                    const lmpDate = getLMPDate(config);
+                                    targetDate = addDays(lmpDate, item.week * 7);
+                                } catch (e) {
+                                    console.error('Error calculating date', e);
+                                }
+                            }
+
+                            return (
+                                <Card
+                                    key={index}
+                                    elevation={0}
+                                    onClick={() => {
+                                        if (targetDate) {
+                                            navigate('/calendar', { state: { targetDate: targetDate.toISOString() } });
+                                        }
+                                    }}
+                                    sx={{
+                                        border: '1px solid',
+                                        borderColor: isCurrent ? 'primary.main' : 'divider',
+                                        borderRadius: 2,
+                                        bgcolor: isCompleted ? '#f8f9fa' : 'white',
+                                        opacity: isCompleted ? 0.8 : 1,
+                                        position: 'relative',
+                                        overflow: 'visible',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        '&:hover': {
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: 2,
+                                            borderColor: 'primary.main'
+                                        }
+                                    }}
+                                >
+                                    {isCurrent && (
+                                        <Box sx={{
+                                            position: 'absolute',
+                                            top: -10,
+                                            right: 16,
+                                            bgcolor: 'primary.main',
+                                            color: 'white',
+                                            px: 1.5,
+                                            py: 0.5,
+                                            borderRadius: 4,
+                                            fontSize: '0.75rem',
+                                            fontWeight: 700,
+                                            zIndex: 1
+                                        }}>
+                                            CURRENT WEEK
+                                        </Box>
+                                    )}
+                                    <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+                                        <Box sx={{ display: 'flex', gap: 2 }}>
+                                            <Box sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'center',
+                                                minWidth: 48
+                                            }}>
+                                                <Box sx={{
+                                                    width: 48,
+                                                    height: 48,
+                                                    borderRadius: '50%',
+                                                    bgcolor: isCurrent ? 'primary.main' : 'primary.50',
+                                                    color: isCurrent ? 'white' : 'primary.main',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontWeight: 700,
+                                                    fontSize: '1.2rem',
+                                                    mb: 0.5
+                                                }}>
+                                                    {item.week}
+                                                </Box>
+                                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                                    WEEK
+                                                </Typography>
+                                            </Box>
+
+                                            <Box sx={{ flex: 1 }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                                                    <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 700 }}>
+                                                        {item.title}
+                                                    </Typography>
+                                                </Box>
+
+                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, lineHeight: 1.5 }}>
+                                                    {item.description}
+                                                </Typography>
+
+                                                <Chip
+                                                    label={item.category.toUpperCase()}
+                                                    size="small"
+                                                    sx={{
+                                                        height: 24,
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: 700,
+                                                        bgcolor: item.category === 'checkup' ? 'success.50' :
+                                                            item.category === 'scan' ? 'info.50' : 'warning.50',
+                                                        color: item.category === 'checkup' ? 'success.700' :
+                                                            item.category === 'scan' ? 'info.700' : 'warning.700',
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
+
+                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                            <Button
+                                component="a"
+                                href="/pregnancy-plan.jpg"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                variant="text"
+                                sx={{
+                                    textTransform: 'none',
+                                    color: 'text.secondary',
+                                    textDecoration: 'underline'
+                                }}
+                            >
+                                View Source Document
+                            </Button>
+                        </Box>
+                    </Box>
+                </DialogContent>
+            </Dialog>
+        </div >
     );
 };
 

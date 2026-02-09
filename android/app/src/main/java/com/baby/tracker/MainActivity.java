@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(ReminderPlugin.class);
         registerPlugin(TFLitePlugin.class);
+        registerPlugin(OcrPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

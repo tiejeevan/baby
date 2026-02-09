@@ -1,0 +1,98 @@
+[
+    {
+        "week": 8,
+        "title": "Initial OB Visit (6-10 Weeks)",
+        "description": "Review of medical history, medications, and labs (CBC, blood type, etc.). Ultrasound may be ordered. Diet and exercise discussion.",
+        "category": "checkup"
+    },
+    {
+        "week": 12,
+        "title": "Genetic Testing & Review (10-18 Weeks)",
+        "description": "Offer genetic testing. Review labs and ultrasounds.",
+        "category": "checkup"
+    },
+    {
+        "week": 16,
+        "title": "Routine Checkup (16 Weeks)",
+        "description": "Routine prenatal visit (part of 4-week schedule). Review weight and BP.",
+        "category": "checkup"
+    },
+    {
+        "week": 20,
+        "title": "Anatomy Scan (19-20 Weeks)",
+        "description": "Ultrasound for fetal anatomy and organ development.",
+        "category": "scan"
+    },
+    {
+        "week": 24,
+        "title": "Routine Checkup (24 Weeks)",
+        "description": "Routine prenatal visit. Discuss preterm labor signs.",
+        "category": "checkup"
+    },
+    {
+        "week": 26,
+        "title": "Glucose Screening (24-28 Weeks)",
+        "description": "Gestational Diabetes screen (50g glucose drink). CBC blood draw. Tdap vaccine offered if >27 weeks.",
+        "category": "test"
+    },
+    {
+        "week": 28,
+        "title": "Routine Checkup & RhoGAM (28 Weeks)",
+        "description": "Routine checkup. RhoGAM injection if Rh negative. Discuss birth plan and hospital registration.",
+        "category": "checkup"
+    },
+    {
+        "week": 30,
+        "title": "Routine Checkup (30 Weeks)",
+        "description": "Routine prenatal visit (now every 2 weeks).",
+        "category": "checkup"
+    },
+    {
+        "week": 32,
+        "title": "Education & Planning (32-34 Weeks)",
+        "description": "Labor instructions, choosing a pediatrician, breast pump referral.",
+        "category": "checkup"
+    },
+    {
+        "week": 34,
+        "title": "Routine Checkup (34 Weeks)",
+        "description": "Routine prenatal visit.",
+        "category": "checkup"
+    },
+    {
+        "week": 36,
+        "title": "GBS Test (36-37 Weeks)",
+        "description": "Group Beta Strep (GBS) Test. Finalize birth plan and hospital consent.",
+        "category": "test"
+    },
+    {
+        "week": 37,
+        "title": "Weekly Checkup (37 Weeks)",
+        "description": "Routine weekly visit until delivery.",
+        "category": "checkup"
+    },
+    {
+        "week": 38,
+        "title": "Weekly Checkup (38 Weeks)",
+        "description": "Routine weekly visit.",
+        "category": "checkup"
+    },
+    {
+        "week": 39,
+        "title": "Weekly Checkup (39 Weeks)",
+        "description": "Routine weekly visit.",
+        "category": "checkup"
+    },
+    {
+        "week": 40,
+        "title": "Due Date Checkup (40 Weeks)",
+        "description": "Routine weekly visit. Discuss postdates care.",
+        "category": "checkup"
+    },
+    {
+        "week": 41,
+        "title": "Overdue Check (41+ Weeks)",
+        "description": "Evaluate fetal wellbeing (NST, BPP, Ultrasound). Counsel on induction of labor.",
+        "category": "checkup"
+    }
+]

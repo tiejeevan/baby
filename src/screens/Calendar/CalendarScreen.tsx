@@ -3,8 +3,12 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dbHelpers } from '../../services/database';
 import type { CalendarEntry, Activity, DateReminder, FileAttachment } from '../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday } from 'date-fns';
+import { useLocation } from 'react-router-dom';
 import { notificationService } from '../../services/notifications';
 import { storageService } from '../../services/storage';
+import pregnancyPlan from '../../data/pregnancy_plan.json';
+import { getLMPDate } from '../../services/pregnancy-calculator';
+import { addDays } from 'date-fns';
 import {
     Dialog,
     DialogTitle,
@@ -27,9 +31,25 @@ import {
 import './CalendarScreen.css';
 
 const CalendarScreen: React.FC = () => {
+    const location = useLocation();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [isBlinking, setIsBlinking] = useState(true);
+
+    useEffect(() => {
+        // Handle navigation from Home screen plan
+        if (location.state && location.state.targetDate) {
+            const targetDate = new Date(location.state.targetDate);
+            // Verify date is valid
+            if (!isNaN(targetDate.getTime())) {
+                setCurrentDate(targetDate); // Set calendar month view
+                setSelectedDate(targetDate); // Open detail panel
+
+                // Clear state history so back button works nicely or strict mode doesn't double trigger weirdly
+                window.history.replaceState({}, document.title);
+            }
+        }
+    }, [location]);
 
     useEffect(() => {
         // Trigger blink animation on mount
@@ -47,14 +67,41 @@ const CalendarScreen: React.FC = () => {
         [currentDate]
     );
 
+
+    const pregnancyConfig = useLiveQuery(() => dbHelpers.getPregnancyConfig());
+
+    const planEvents = React.useMemo(() => {
+        if (!pregnancyConfig) return [];
+        try {
+            const lmpDate = getLMPDate(pregnancyConfig);
+            return pregnancyPlan.map(event => ({
+                ...event,
+                date: format(addDays(lmpDate, event.week * 7), 'yyyy-MM-dd'),
+                dateObj: addDays(lmpDate, event.week * 7)
+            }));
+        } catch (e) {
+            console.error('Error calculating plan dates:', e);
+            return [];
+        }
+    }, [pregnancyConfig]);
+
     const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
     const hasEntry = (date: Date): boolean => {
         const dateStr = format(date, 'yyyy-MM-dd');
         const entry = calendarEntries?.find(entry => entry.date === dateStr);
+        const hasPlan = planEvents.some(event => event.date === dateStr);
+
+        if (hasPlan) return true;
+
         if (!entry) return false;
         // Only show indicator if there are actual activities or reminders
         return !!((entry.activities && entry.activities.length > 0) || (entry.reminders && entry.reminders.length > 0));
+    };
+
+    const getPlanEventsForDate = (date: Date) => {
+        const dateStr = format(date, 'yyyy-MM-dd');
+        return planEvents.filter(event => event.date === dateStr);
     };
 
     const getEntryForDate = (date: Date): CalendarEntry | undefined => {
@@ -130,9 +177,11 @@ const CalendarScreen: React.FC = () => {
             </div>
 
             {selectedDate && (
+
                 <DateDetailPanel
                     date={selectedDate}
                     entry={getEntryForDate(selectedDate)}
+                    planEvents={getPlanEventsForDate(selectedDate)}
                     onClose={() => setSelectedDate(null)}
                 />
             )}
@@ -140,14 +189,16 @@ const CalendarScreen: React.FC = () => {
     );
 };
 
+
 interface DateDetailPanelProps {
     date: Date;
     entry: CalendarEntry | undefined;
+    planEvents: typeof pregnancyPlan & { date: string }[];
     onClose: () => void;
 }
 
 
-const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose }) => {
+const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, planEvents, onClose }) => {
     // Activities and Reminders State
     const [activities, setActivities] = useState<Activity[]>(entry?.activities || []);
     const [reminders, setReminders] = useState<DateReminder[]>(entry?.reminders || []);
@@ -503,6 +554,64 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, onClose 
                         </Box>
 
                         <Divider />
+
+                        {/* Plan Events Section */}
+                        {planEvents && planEvents.length > 0 && (
+                            <Box>
+                                <Typography variant="subtitle2" sx={{
+                                    color: 'primary.main',
+                                    fontWeight: 600,
+                                    mb: 1.5,
+                                    textTransform: 'uppercase',
+                                    fontSize: '0.75rem',
+                                    letterSpacing: 0.5,
+                                    mt: 1
+                                }}>
+                                    Suggested Medical Plan
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {planEvents.map((event, index) => (
+                                        <Card
+                                            key={`plan-${index}`}
+                                            variant="outlined"
+                                            sx={{
+                                                borderRadius: 2,
+                                                bgcolor: 'primary.50',
+                                                borderColor: 'primary.200'
+                                            }}
+                                        >
+                                            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                                                    <Typography sx={{ fontSize: '1.5rem' }}>
+                                                        {event.category === 'scan' ? '🖥️' :
+                                                            event.category === 'test' ? '🩸' : '⚕️'}
+                                                    </Typography>
+                                                    <Box sx={{ flex: 1 }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5, color: 'primary.900' }}>
+                                                            {event.title}
+                                                        </Typography>
+                                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                                            {event.description}
+                                                        </Typography>
+                                                        <Chip
+                                                            label={`Week ${event.week}`}
+                                                            size="small"
+                                                            sx={{
+                                                                bgcolor: 'primary.100',
+                                                                color: 'primary.800',
+                                                                fontWeight: 600,
+                                                                fontSize: '0.75rem'
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </Box>
+                                <Divider sx={{ mt: 3 }} />
+                            </Box>
+                        )}
 
                         {/* Activities Section */}
                         <Box>
