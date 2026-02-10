@@ -5,6 +5,7 @@ import { storageService } from '../../services/storage';
 import type { Milestone, MilestoneType } from '../../types';
 import { calculatePregnancyDuration, getWeekStartDate } from '../../utils/pregnancy';
 import dailyHighlightsData from '../../data/daily_highlights.json';
+import { useLocation } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -201,6 +202,7 @@ const PhotoPreview: React.FC<{ photoId: string }> = ({ photoId }) => {
 
 const TimelineScreen: React.FC = () => {
     const theme = useTheme();
+    const location = useLocation();
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
     const milestones = useLiveQuery(() => dbHelpers.getMilestones());
 
@@ -209,6 +211,8 @@ const TimelineScreen: React.FC = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editingMilestone, setEditingMilestone] = useState<Milestone | null>(null);
     const [tempPhotos, setTempPhotos] = useState<string[]>([]); // Array of base64 strings for preview
+    const [highlightCurrentWeek, setHighlightCurrentWeek] = useState(false);
+    const currentWeekRef = React.useRef<HTMLDivElement>(null);
 
     // Form State
     const [formData, setFormData] = useState<{
@@ -286,6 +290,42 @@ const TimelineScreen: React.FC = () => {
             setExpandedWeek(weeks > 0 ? weeks : 1);
         }
     }, [config, expandedWeek]);
+
+    // Scroll to current week and highlight on mount
+    useEffect(() => {
+        if (config && currentWeekRef.current) {
+            // Scroll to current week
+            setTimeout(() => {
+                currentWeekRef.current?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                // Trigger highlight animation
+                setHighlightCurrentWeek(true);
+                setTimeout(() => {
+                    setHighlightCurrentWeek(false);
+                }, 2000);
+            }, 300);
+        }
+    }, [config, timelineNodes.length]);
+
+    // Trigger animation when navigating to timeline
+    useEffect(() => {
+        if (location.state && (location.state as any).timestamp && currentWeekRef.current) {
+            setTimeout(() => {
+                currentWeekRef.current?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                setHighlightCurrentWeek(true);
+                setTimeout(() => {
+                    setHighlightCurrentWeek(false);
+                }, 2000);
+            }, 300);
+        }
+    }, [location]);
 
     // --- Handlers ---
 
@@ -396,7 +436,11 @@ const TimelineScreen: React.FC = () => {
 
             <Timeline position="right" sx={{ px: 0 }}>
                 {timelineNodes.map((node) => (
-                    <TimelineItem key={node.week} sx={{ '&:before': { flex: 0, padding: 0 } }}>
+                    <TimelineItem 
+                        key={node.week} 
+                        sx={{ '&:before': { flex: 0, padding: 0 } }}
+                        ref={node.isCurrent ? currentWeekRef : null}
+                    >
                         <TimelineOppositeContent sx={{ flex: 'auto', maxWidth: '80px', px: 1, pt: 2, textAlign: 'right' }}>
                             <Typography variant="subtitle2" fontWeight="bold" color={node.isCurrent ? 'primary' : 'text.secondary'}>
                                 Week {node.week}
@@ -427,7 +471,18 @@ const TimelineScreen: React.FC = () => {
                                     borderRadius: 3,
                                     border: node.isCurrent ? `1px solid ${alpha(theme.palette.primary.main, 0.3)}` : 'none',
                                     bgcolor: node.isCurrent ? alpha(theme.palette.primary.main, 0.02) : 'background.paper',
-                                    overflow: 'hidden'
+                                    overflow: 'hidden',
+                                    animation: (node.isCurrent && highlightCurrentWeek) ? 'highlightPulse 2s ease-in-out' : 'none',
+                                    '@keyframes highlightPulse': {
+                                        '0%, 100%': {
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                            transform: 'scale(1)',
+                                        },
+                                        '50%': {
+                                            boxShadow: `0 0 30px ${alpha(theme.palette.primary.main, 0.6)}`,
+                                            transform: 'scale(1.02)',
+                                        }
+                                    }
                                 }}
                             >
                                 <CardContent sx={{ pb: 1, '&:last-child': { pb: 2 } }}>

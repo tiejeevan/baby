@@ -34,7 +34,7 @@ const CalendarScreen: React.FC = () => {
     const location = useLocation();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-    const [isBlinking, setIsBlinking] = useState(true);
+    const [isBlinking, setIsBlinking] = useState(false);
 
     useEffect(() => {
         // Handle navigation from Home screen plan
@@ -52,12 +52,24 @@ const CalendarScreen: React.FC = () => {
     }, [location]);
 
     useEffect(() => {
-        // Trigger blink animation on mount
+        // Trigger blink animation on mount or when navigating to calendar
+        setIsBlinking(true);
         const timer = setTimeout(() => {
             setIsBlinking(false);
-        }, 2200);
+        }, 2000);
         return () => clearTimeout(timer);
     }, []);
+
+    // Trigger animation when navigating to calendar
+    useEffect(() => {
+        if (location.state && (location.state as any).timestamp) {
+            setIsBlinking(true);
+            const timer = setTimeout(() => {
+                setIsBlinking(false);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [location]);
 
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);

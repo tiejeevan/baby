@@ -8,7 +8,7 @@ import dailyHighlightsData from '../../data/daily_highlights.json';
 import trimesterData from '../../data/trimester_data.json';
 import tipsData from '../../data/tips.json';
 import { dbHelpers } from '../../services/database';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { calculatePregnancyStatus, getTrimester, getDaysUntilDue, getLMPDate } from '../../services/pregnancy-calculator';
 import type { CurrentPregnancyStatus } from '../../types';
 import pregnancyPlan from '../../data/pregnancy_plan.json';
@@ -33,6 +33,7 @@ import NamePromptDialog from '../../components/NamePromptDialog';
 const HomeScreen: React.FC = () => {
     const { theme } = useTheme();
     const navigate = useNavigate();
+    const location = useLocation();
     const [status, setStatus] = useState<CurrentPregnancyStatus | null>(null);
     const [isPlanOpen, setIsPlanOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
@@ -40,6 +41,7 @@ const HomeScreen: React.FC = () => {
     const [showDailyDetail, setShowDailyDetail] = useState(false);
     const [showTrimesterDetail, setShowTrimesterDetail] = useState(false);
     const [shuffledTips, setShuffledTips] = useState<string[]>([]);
+    const [showGlowAnimation, setShowGlowAnimation] = useState(true);
 
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
     const upcomingAppointments = useLiveQuery(() => dbHelpers.getUpcomingAppointments(3));
@@ -61,6 +63,26 @@ const HomeScreen: React.FC = () => {
         }, 10000); // 10 seconds
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        // Trigger glow animation on mount
+        setShowGlowAnimation(true);
+        const timer = setTimeout(() => {
+            setShowGlowAnimation(false);
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Trigger animation when navigating to home
+    useEffect(() => {
+        if (location.state && (location.state as any).timestamp) {
+            setShowGlowAnimation(true);
+            const timer = setTimeout(() => {
+                setShowGlowAnimation(false);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [location]);
 
     const getDailyHighlight = () => {
         if (!status) return null;
@@ -210,7 +232,16 @@ const HomeScreen: React.FC = () => {
                     display: 'inline-block',
                     fontSize: '2.5rem',
                     lineHeight: 1.2,
-                    mb: 1
+                    mb: 1,
+                    animation: showGlowAnimation ? 'glowPulse 3s ease-in-out' : 'none',
+                    '@keyframes glowPulse': {
+                        '0%, 100%': {
+                            filter: 'drop-shadow(0 0 0px transparent)',
+                        },
+                        '50%': {
+                            filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))',
+                        }
+                    }
                 }}>
                     {config.firstName || 'Mama'}
                 </Typography>
@@ -221,7 +252,16 @@ const HomeScreen: React.FC = () => {
                     fontSize: '1.2rem',
                     display: 'flex',
                     alignItems: 'baseline',
-                    gap: 0.5
+                    gap: 0.5,
+                    animation: showGlowAnimation ? 'glowPulse 3s ease-in-out' : 'none',
+                    '@keyframes glowPulse': {
+                        '0%, 100%': {
+                            filter: 'drop-shadow(0 0 0px transparent)',
+                        },
+                        '50%': {
+                            filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))',
+                        }
+                    }
                 }}>
                     You are in <Box component="span" sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.5rem' }}>Week {status.weeks}</Box>, Day {status.days}
                 </Typography>
