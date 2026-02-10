@@ -8,6 +8,7 @@ import CalendarScreen from './screens/Calendar/CalendarScreen';
 import ChatScreen from './screens/Chat/ChatScreen';
 import SettingsScreen from './screens/Settings/SettingsScreen';
 import OnboardingScreen from './screens/Onboarding/OnboardingScreen';
+import DietScreen from './screens/Diet/DietScreen';
 import { notificationService } from './services/notifications';
 import { storageService } from './services/storage';
 import { dbHelpers } from './services/database';
@@ -111,6 +112,7 @@ function App() {
             <Route path="calendar" element={<CalendarScreen />} />
             <Route path="chat" element={<ChatScreen />} />
             <Route path="settings" element={<SettingsScreen />} />
+            <Route path="diet" element={<DietScreen />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

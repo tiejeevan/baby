@@ -8,6 +8,10 @@ import type {
     Photo,
     ReminderSettings,
     ChatMessage,
+    DietPreference,
+    DailyDietPlan,
+    WaterLog,
+    WeightLog,
 } from '../types';
 
 export class PregnancyDatabase extends Dexie {
@@ -19,6 +23,10 @@ export class PregnancyDatabase extends Dexie {
     photos!: Table<Photo, string>;
     reminderSettings!: Table<ReminderSettings, number>;
     chatMessages!: Table<ChatMessage, number>;
+    dietPreferences!: Table<DietPreference, number>;
+    dailyDietPlans!: Table<DailyDietPlan, number>;
+    waterLogs!: Table<WaterLog, number>;
+    weightLogs!: Table<WeightLog, number>;
 
     constructor() {
         super('PregnancyTrackerDB');
@@ -32,6 +40,13 @@ export class PregnancyDatabase extends Dexie {
             photos: 'id, date, associatedWith, associatedId, createdAt',
             reminderSettings: '++id, createdAt',
             chatMessages: '++id, createdAt',
+        });
+
+        this.version(4).stores({
+            dietPreferences: '++id, createdAt',
+            dailyDietPlans: '++id, date, createdAt',
+            waterLogs: '++id, date, createdAt',
+            weightLogs: '++id, date',
         });
     }
 }
@@ -238,5 +253,79 @@ export const dbHelpers = {
 
     async clearChatHistory(): Promise<void> {
         await db.chatMessages.clear();
+    },
+
+    // --- Diet & Health Helpers ---
+
+    // Diet Preferences
+    async getDietPreference(): Promise<DietPreference | undefined> {
+        return await db.dietPreferences.orderBy('createdAt').last();
+    },
+
+    async saveDietPreference(pref: Omit<DietPreference, 'id'>): Promise<number> {
+        return await db.dietPreferences.add(pref as DietPreference);
+    },
+
+    async updateDietPreference(id: number, updates: Partial<DietPreference>): Promise<void> {
+        await db.dietPreferences.update(id, {
+            ...updates,
+            updatedAt: new Date().toISOString()
+        });
+    },
+
+    // Daily Diet Plans
+    async getDailyPlan(date: string): Promise<DailyDietPlan | undefined> {
+        return await db.dailyDietPlans.where('date').equals(date).first();
+    },
+
+    async saveDailyPlan(plan: Omit<DailyDietPlan, 'id'>): Promise<number> {
+        const existing = await this.getDailyPlan(plan.date);
+        if (existing?.id) {
+            await db.dailyDietPlans.update(existing.id, {
+                ...plan,
+                updatedAt: new Date().toISOString()
+            });
+            return existing.id;
+        }
+        return await db.dailyDietPlans.add(plan as DailyDietPlan);
+    },
+
+    // Water Logging
+    async addWaterLog(log: Omit<WaterLog, 'id'>): Promise<number> {
+        return await db.waterLogs.add(log as WaterLog);
+    },
+
+    async getWaterLogs(date: string): Promise<WaterLog[]> {
+        return await db.waterLogs.where('date').equals(date).toArray();
+    },
+
+    async getTotalWaterIntake(date: string): Promise<number> {
+        const logs = await this.getWaterLogs(date);
+        return logs.reduce((sum, log) => sum + log.amount, 0);
+    },
+
+    // Weight Logging
+    async addWeightLog(log: Omit<WeightLog, 'id'>): Promise<number> {
+        // Check if logs exist for this date, if so update
+        const existing = await db.weightLogs.where('date').equals(log.date).first();
+        if (existing?.id) {
+            await db.weightLogs.update(existing.id, log);
+            return existing.id;
+        }
+        return await db.weightLogs.add(log as WeightLog);
+    },
+
+    async getWeightHistory(): Promise<WeightLog[]> {
+        return await db.weightLogs.orderBy('date').toArray();
+    },
+
+    async getLatestWeight(): Promise<WeightLog | undefined> {
+        return await db.weightLogs.orderBy('date').last();
+    },
+
+    async resetDietData(): Promise<void> {
+        await db.dietPreferences.clear();
+        await db.dailyDietPlans.clear();
+        await db.waterLogs.clear();
     },
 };

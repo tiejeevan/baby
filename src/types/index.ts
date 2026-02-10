@@ -151,3 +151,61 @@ export interface ChatMessage {
     content: string;
     createdAt: string;
 }
+
+// --- Diet & Health Types ---
+
+export interface DietPreference {
+    id?: number;
+    dietType: 'standard' | 'vegetarian' | 'vegan' | 'pescatarian' | 'gluten_free' | 'keto' | 'paleo';
+    allergies: string[]; // e.g., ['nuts', 'dairy']
+    dislikes: string[];
+    calorieGoal?: number;
+    waterGoal?: number; // in ml
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Meal {
+    id: string; // UUID
+    type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+    name: string;
+    description: string;
+    calories?: number;
+    nutrients?: {
+        protein?: number;
+        carbs?: number;
+        fats?: number;
+        iron?: number;
+        calcium?: number;
+        folate?: number;
+    };
+    ingredients: string[];
+    recipe?: string;
+    completed: boolean;
+}
+
+export interface DailyDietPlan {
+    id?: number;
+    date: string; // YYYY-MM-DD
+    meals: Meal[];
+    totalCalories?: number;
+    waterIntake: number; // in ml
+    notes?: string;
+    generatedByAI: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface WaterLog {
+    id?: number;
+    date: string; // YYYY-MM-DD
+    amount: number; // ml
+    timestamp: string; // ISO
+}
+
+export interface WeightLog {
+    id?: number;
+    date: string; // YYYY-MM-DD
+    weight: number; // kg or lbs from settings
+    note?: string;
+}

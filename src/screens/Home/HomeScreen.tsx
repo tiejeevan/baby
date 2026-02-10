@@ -136,6 +136,45 @@ const HomeScreen: React.FC = () => {
             </div>
 
 
+            <Box sx={{ p: 2, pt: 0 }}>
+                <Card
+                    elevation={0}
+                    sx={{
+                        background: 'linear-gradient(135deg, #a8e063 0%, #56ab2f 100%)',
+                        color: 'white',
+                        borderRadius: 4,
+                        position: 'relative',
+                        overflow: 'hidden',
+                        mb: 2
+                    }}
+                >
+                    <CardContent sx={{ position: 'relative', zIndex: 1 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box>
+                                <Typography variant="h6" fontWeight="bold">Nutrition & Diet 🥗</Typography>
+                                <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
+                                    AI-powered meal plans for Week {status?.weeks || 0}
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    onClick={() => navigate('/diet')}
+                                    sx={{
+                                        bgcolor: 'white',
+                                        color: '#56ab2f',
+                                        fontWeight: 'bold',
+                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' }
+                                    }}
+                                >
+                                    Open Diet Plan
+                                </Button>
+                            </Box>
+                            <Box sx={{ fontSize: '3rem', opacity: 0.8 }}>🥑</Box>
+                        </Box>
+                    </CardContent>
+                </Card>
+            </Box>
+
             <Box sx={{ p: 2, pb: 4, display: 'flex', justifyContent: 'center' }}>
                 <Button
                     variant="contained"

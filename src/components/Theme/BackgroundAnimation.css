@@ -85,28 +85,32 @@
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
 }
 
-/* Boy Theme (Bubbles/Blue) */
+/* Boy Theme (Dark Sky Blue Hearts & Babies) */
 .boy-bg {
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    /* richer sky blue */
 }
 
-.floating-bubble {
+.blue-heart {
     position: absolute;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(59, 130, 246, 0.2));
-    border-radius: 50%;
-    bottom: -10%;
-    border: 1px solid rgba(59, 130, 246, 0.1);
-    animation: floatUp 15s infinite ease-in;
-    backdrop-filter: blur(2px);
+    color: #0284c7;
+    /* darker sky blue */
+    opacity: 0.6;
+    animation: floatUp 20s infinite ease-in;
+    filter: drop-shadow(0 2px 4px rgba(2, 132, 199, 0.2));
+}
+
+.baby-figure {
+    position: absolute;
+    font-size: 2rem;
+    animation: floatUp 25s infinite ease-in-out;
+    opacity: 0.8;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .stork-icon {
-    position: absolute;
-    font-size: 4rem;
-    bottom: 5%;
-    right: 5%;
-    opacity: 0.1;
-    transform: rotate(-10deg);
+    display: none;
+    /* Hiding the old static stork */
 }
 
 /* Girl Theme (Hearts/Pink) */

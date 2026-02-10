@@ -30,13 +30,17 @@ const BackgroundAnimation: React.FC = () => {
         scale: Math.random() * 0.5 + 0.8
     })), []);
 
-    const bubbles = useMemo(() => Array.from({ length: 15 }).map((_, i) => ({
-        id: i,
-        left: Math.random() * 100,
-        delay: Math.random() * 10,
-        duration: 8 + Math.random() * 10,
-        size: Math.random() * 20 + 10
-    })), []);
+    const boyItems = useMemo(() => {
+        const icons = ['💙', '💙', '💙', '👶', '👶', '🧸', '🍼'];
+        return Array.from({ length: 20 }).map((_, i) => ({
+            id: i,
+            icon: icons[Math.floor(Math.random() * icons.length)],
+            left: Math.random() * 95,
+            delay: Math.random() * 20,
+            duration: 15 + Math.random() * 15,
+            size: Math.random() * 1.5 + 1 // 1rem to 2.5rem
+        }));
+    }, []);
 
     if (theme === 'dark') {
         return (
@@ -63,20 +67,21 @@ const BackgroundAnimation: React.FC = () => {
     if (theme === 'boy') {
         return (
             <div className="bg-anim-container boy-bg">
-                {bubbles.map(bubble => (
+                {boyItems.map(item => (
                     <div
-                        key={bubble.id}
-                        className="floating-bubble"
+                        key={item.id}
+                        className={item.icon === '💙' ? "blue-heart" : "baby-figure"}
                         style={{
-                            left: `${bubble.left}%`,
-                            width: `${bubble.size}px`,
-                            height: `${bubble.size}px`,
-                            animationDelay: `${bubble.delay}s`,
-                            animationDuration: `${bubble.duration}s`
+                            left: `${item.left}%`,
+                            fontSize: `${item.size}rem`,
+                            animationDelay: `${item.delay}s`,
+                            animationDuration: `${item.duration}s`,
+                            bottom: `-${item.size + 5}rem` // Start below screen
                         }}
-                    />
+                    >
+                        {item.icon}
+                    </div>
                 ))}
-                <div className="stork-icon">👶</div>
             </div>
         );
     }

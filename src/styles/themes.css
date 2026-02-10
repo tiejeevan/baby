@@ -1,16 +1,25 @@
-/* Blue Baby Boy Theme */
+/* Darker Sky Blue Baby Boy Theme */
 [data-theme='boy'] {
-    --color-primary: #3b82f6;
-    --color-primary-light: #93c5fd;
-    --color-primary-dark: #1d4ed8;
-    --color-secondary: #64748b;
-    --color-accent: #0ea5e9;
-    --color-bg-primary: #eff6ff;
+    --color-primary: #0284c7;
+    /* sky-600 */
+    --color-primary-light: #7dd3fc;
+    /* sky-300 */
+    --color-primary-dark: #0369a1;
+    /* sky-700 */
+    --color-secondary: #0ea5e9;
+    /* sky-500 */
+    --color-accent: #38bdf8;
+    /* sky-400 */
+    --color-bg-primary: #f0f9ff;
+    /* sky-50 */
     --color-bg-secondary: #ffffff;
-    --color-bg-tertiary: #dbeafe;
-    --color-text-primary: #1e3a8a;
-    --color-text-secondary: #475569;
-    --color-text-tertiary: #94a3b8;
+    --color-bg-tertiary: #e0f2fe;
+    /* sky-100 */
+    --color-text-primary: #0c4a6e;
+    /* sky-900 */
+    --color-text-secondary: #0284c7;
+    /* sky-600 */
+    --color-text-tertiary: #7dd3fc;
 }
 
 /* Pink Baby Girl Theme */
