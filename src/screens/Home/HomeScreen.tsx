@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useTheme } from '../../context/ThemeContext';
 import { Sun, Moon, Sunrise, Sunset } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dailyHighlightsData from '../../data/daily_highlights.json';
@@ -28,6 +29,7 @@ import './HomeScreen.css';
 import NamePromptDialog from '../../components/NamePromptDialog';
 
 const HomeScreen: React.FC = () => {
+    const { theme } = useTheme();
     const navigate = useNavigate();
     const [status, setStatus] = useState<CurrentPregnancyStatus | null>(null);
     const [isPlanOpen, setIsPlanOpen] = useState(false);
@@ -110,37 +112,58 @@ const HomeScreen: React.FC = () => {
 
     // Get dynamic greeting based on time of day
     // Get dynamic greeting based on time of day
+    // Define colors based on theme
+    const isBoy = theme === 'boy';
+
     const getGreeting = () => {
         const hour = new Date().getHours();
 
         if (hour >= 5 && hour < 12) {
             return {
                 text: 'Good Morning',
-                icon: <Sunrise size={28} color="#FFD700" strokeWidth={1.5} />,
-                gradient: 'linear-gradient(135deg, #FFE5B4 0%, #FFD700 100%)'
+                icon: <Sunrise size={28} color={isBoy ? "#4fc3f7" : "#FFD700"} strokeWidth={1.5} />,
+                gradient: isBoy
+                    ? 'linear-gradient(135deg, #81d4fa 0%, #29b6f6 100%)'
+                    : 'linear-gradient(135deg, #FFE5B4 0%, #FFD700 100%)'
             };
         } else if (hour >= 12 && hour < 17) {
             return {
                 text: 'Good Afternoon',
-                icon: <Sun size={28} color="#F6A192" strokeWidth={1.5} />,
-                gradient: 'linear-gradient(135deg, #FDB99B 0%, #F6A192 100%)'
+                icon: <Sun size={28} color={isBoy ? "#29b6f6" : "#F6A192"} strokeWidth={1.5} />,
+                gradient: isBoy
+                    ? 'linear-gradient(135deg, #4fc3f7 0%, #039be5 100%)'
+                    : 'linear-gradient(135deg, #FDB99B 0%, #F6A192 100%)'
             };
         } else if (hour >= 17 && hour < 21) {
             return {
                 text: 'Good Evening',
-                icon: <Sunset size={28} color="#9D84B7" strokeWidth={1.5} />,
-                gradient: 'linear-gradient(135deg, #C9A9E9 0%, #9D84B7 100%)'
+                icon: <Sunset size={28} color={isBoy ? "#5c6bc0" : "#9D84B7"} strokeWidth={1.5} />,
+                gradient: isBoy
+                    ? 'linear-gradient(135deg, #7986cb 0%, #3949ab 100%)'
+                    : 'linear-gradient(135deg, #C9A9E9 0%, #9D84B7 100%)'
             };
         } else {
             return {
                 text: 'Good Night',
-                icon: <Moon size={28} color="#4C63D2" strokeWidth={1.5} />,
-                gradient: 'linear-gradient(135deg, #667EEA 0%, #4C63D2 100%)'
+                icon: <Moon size={28} color={isBoy ? "#3949ab" : "#4C63D2"} strokeWidth={1.5} />,
+                gradient: isBoy
+                    ? 'linear-gradient(135deg, #5c6bc0 0%, #1a237e 100%)'
+                    : 'linear-gradient(135deg, #667EEA 0%, #4C63D2 100%)'
             };
         }
     };
 
     const greeting = getGreeting();
+
+    // Baby Stat Card Color
+    const babyCardBg = isBoy ? '#e3f2fd' : '#fff0f3'; // Light Blue vs Light Pink
+
+    // Pregnancy Plan Card Gradient
+    const planCardGradient = isBoy
+        ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' // Blue Gradient
+        : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'; // Pink/Red Gradient
+
+    // Nutrition Card - kept green as it represents health usually, but could be adjusted if needed.
 
     return (
         <div className="home-screen" style={{ marginTop: -20 }}>
@@ -234,7 +257,7 @@ const HomeScreen: React.FC = () => {
                         <div className="stat-label">Trimester</div>
                     </div>
                     {/* Size comparison could go here if available, using existing stat card for now */}
-                    <div className="stat-card" style={{ background: '#fff0f3', border: 'none' }}>
+                    <div className="stat-card" style={{ background: babyCardBg, border: 'none' }}>
                         <div className="stat-value">Baby</div>
                         <div className="stat-label">is growing</div> {/* Placeholder since we don't have size in status yet */}
                     </div>
@@ -546,7 +569,7 @@ const HomeScreen: React.FC = () => {
                 <Card
                     elevation={0}
                     sx={{
-                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        background: planCardGradient,
                         color: 'white',
                         borderRadius: 4,
                         position: 'relative',
@@ -592,7 +615,7 @@ const HomeScreen: React.FC = () => {
                                     }}
                                     sx={{
                                         bgcolor: 'white',
-                                        color: '#f5576c',
+                                        color: isBoy ? '#00f2fe' : '#f5576c',
                                         fontWeight: 'bold',
                                         ml: 7.5,
                                         px: 3,
