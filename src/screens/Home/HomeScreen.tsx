@@ -39,6 +39,7 @@ const HomeScreen: React.FC = () => {
     const [currentTipIndex, setCurrentTipIndex] = useState(0);
     const [showDailyDetail, setShowDailyDetail] = useState(false);
     const [showTrimesterDetail, setShowTrimesterDetail] = useState(false);
+    const [shuffledTips, setShuffledTips] = useState<string[]>([]);
 
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
     const upcomingAppointments = useLiveQuery(() => dbHelpers.getUpcomingAppointments(3));
@@ -51,8 +52,12 @@ const HomeScreen: React.FC = () => {
     };
 
     useEffect(() => {
+        // Shuffle tips on mount
+        const shuffled = [...tipsData].sort(() => Math.random() - 0.5);
+        setShuffledTips(shuffled);
+
         const interval = setInterval(() => {
-            setCurrentTipIndex((prev) => (prev + 1) % tipsData.length);
+            setCurrentTipIndex((prev) => (prev + 1) % shuffled.length);
         }, 10000); // 10 seconds
         return () => clearInterval(interval);
     }, []);
@@ -557,7 +562,7 @@ const HomeScreen: React.FC = () => {
                                         style={{ width: '100%' }}
                                     >
                                         <Typography variant="body2" fontWeight={600} color="#795548" sx={{ lineHeight: 1.4 }}>
-                                            {tipsData[currentTipIndex]}
+                                            {shuffledTips[currentTipIndex] || tipsData[currentTipIndex]}
                                         </Typography>
                                     </motion.div>
                                 </AnimatePresence>
