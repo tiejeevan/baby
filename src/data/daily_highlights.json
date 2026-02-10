@@ -1,0 +1,589 @@
+{
+    "weeks": {
+        "4": {
+            "size": "Poppy seed",
+            "length": "0.1 inch",
+            "weight": "< 1 g",
+            "summary": "Implantation occurs. The blastocyst burrows into the uterine wall.",
+            "days": {
+                "0": "The blastocyst reaches the uterus and prepares for implantation.",
+                "1": "Implantation begins; the outer cells start to form the placenta.",
+                "2": "The amniotic sac begins to form.",
+                "3": "The yolk sac produces blood cells while the placenta develops.",
+                "4": "The embryo separates into three layers: ectoderm, mesoderm, endoderm.",
+                "5": "The neural tube (brain/spinal cord precursor) begins to form.",
+                "6": "hCG levels rise significantly, often detectable by home tests."
+            }
+        },
+        "5": {
+            "size": "Sesame seed",
+            "length": "0.13 inch",
+            "weight": "< 1 g",
+            "summary": "The embryonic period begins. Key systems like the circulatory and nervous systems differentiate.",
+            "days": {
+                "0": "The heart tube forms and begins to beat irregularly.",
+                "1": "The neural tube closes; folic acid is critical now.",
+                "2": "Early structures for eyes and ears appear.",
+                "3": "Limb buds for arms and legs emerge.",
+                "4": "The umbilical cord replaces the yolk sac for nutrient transport.",
+                "5": "Blood vessels form and connect to the heart.",
+                "6": "The embryo looks tadpole-like with a small tail."
+            }
+        },
+        "6": {
+            "size": "Lentil",
+            "length": "0.25 inch",
+            "weight": "< 1 g",
+            "summary": "Heartbeat becomes regular and detectable via ultrasound.",
+            "days": {
+                "0": "The heart beats at 100-160 bpm.",
+                "1": "Nose, mouth, and ears take distinct shape.",
+                "2": "The intestines begin to form.",
+                "3": "Limb buds elongate into paddles.",
+                "4": "Lung buds appear.",
+                "5": "The brain divides into distinct regions.",
+                "6": "Small, jerky movements begin (imperceptible to mother)."
+            }
+        },
+        "7": {
+            "size": "Blueberry",
+            "length": "0.5 inch",
+            "weight": "< 1 g",
+            "summary": "Rapid brain growth; head is large relative to body.",
+            "days": {
+                "0": "Hands and feet plates form.",
+                "1": "Eyelids start to form but remain fused.",
+                "2": "Kidneys begin to develop.",
+                "3": "The liver starts producing red blood cells.",
+                "4": "The appendix and pancreas form.",
+                "5": "Tooth buds develop in the gums.",
+                "6": "The embryo produces waste (urine) into the amniotic fluid."
+            }
+        },
+        "8": {
+            "size": "Raspberry",
+            "length": "0.6 inch",
+            "weight": "1 g",
+            "summary": "Fingers and toes differentiate; tail disappears.",
+            "days": {
+                "0": "Webbed fingers and toes are visible.",
+                "1": "The upper lip and nose tip form.",
+                "2": "Taste buds begin to develop.",
+                "3": "The embryonic tail is nearly gone.",
+                "4": "Eyelids fuse shut.",
+                "5": "Bones begin to ossify (harden).",
+                "6": "Elbows and knees are distinct."
+            }
+        },
+        "9": {
+            "size": "Grape",
+            "length": "0.9 inch",
+            "weight": "2 g",
+            "summary": "Transition from embryo to fetus. All essential organs are present.",
+            "days": {
+                "0": "Heart has four defined chambers.",
+                "1": "External genitalia begin to form (though not visible yet).",
+                "2": "Fingernails appear.",
+                "3": "Head is more rounded.",
+                "4": "Arms can bend at the elbow.",
+                "5": "Intestines herniate into the umbilical cord temporarily.",
+                "6": "Earlobes are visible."
+            }
+        },
+        "10": {
+            "size": "Kumquat",
+            "length": "1.2 inch",
+            "weight": "4 g",
+            "summary": "Vital organs are functioning. The fetus is less susceptible to congenital anomalies.",
+            "days": {
+                "0": "Fingernails and toenails are clearly defined.",
+                "1": "Fine hair (lanugo) appears.",
+                "2": "The spine is visible through the skin.",
+                "3": "The forehead bulges due to brain growth.",
+                "4": "The fetus can swallow amniotic fluid.",
+                "5": "Joints allow limbs to bend freely.",
+                "6": "Reflexes like grasping develop."
+            }
+        },
+        "11": {
+            "size": "Fig",
+            "length": "1.6 inch",
+            "weight": "7 g",
+            "summary": "Facial features mature; external genitalia become distinct.",
+            "days": {
+                "0": "Hair follicles form on the scalp/body.",
+                "1": "Ovaries or testes develop internally.",
+                "2": "Hands can open and close.",
+                "3": "Bones harden further.",
+                "4": "Stretching and kicking movements increase.",
+                "5": "Skin is transparent but thickening.",
+                "6": "Tooth buds are permanently set."
+            }
+        },
+        "12": {
+            "size": "Lime",
+            "length": "2.1 inch",
+            "weight": "14 g",
+            "summary": "Reflexes are stronger. The fetus can curl toes and make sucking motions.",
+            "days": {
+                "0": "Intestines return to the abdomen.",
+                "1": "Bone marrow produces white blood cells.",
+                "2": "The pituitary gland produces hormones.",
+                "3": "Vocal cords form.",
+                "4": "Kidneys excrete urine efficiently.",
+                "5": "Nerves multiply rapidly.",
+                "6": "The fetus can frown and squint."
+            }
+        },
+        "13": {
+            "size": "Lemon",
+            "length": "2.9 inch",
+            "weight": "23 g",
+            "summary": "End of First Trimester. Fingerprints form.",
+            "days": {
+                "0": "Unique fingerprints develop.",
+                "1": "Veins are visible through the skin.",
+                "2": "Females have approx. 2 million eggs in ovaries.",
+                "3": "The placenta fully takes over nutrition.",
+                "4": "Vocal cords develop further.",
+                "5": "Head is 1/3 of body size.",
+                "6": "Intestines are fully in the abdomen."
+            }
+        },
+        "14": {
+            "size": "Nectarine",
+            "length": "3.4 inch",
+            "weight": "43 g",
+            "summary": "Second Trimester begins! Baby can make facial expressions.",
+            "days": {
+                "0": "Baby can now grimace and squint.",
+                "1": "The neck elongates; chin is off the chest.",
+                "2": "Lanugo (fine hair) covers the body for warmth.",
+                "3": "Thyroid gland starts functioning.",
+                "4": "Kidneys produce urine released into amniotic fluid.",
+                "5": "Liver starts producing bile.",
+                "6": "Spleen starts producing red blood cells."
+            }
+        },
+        "15": {
+            "size": "Apple",
+            "length": "4.0 inch",
+            "weight": "70 g",
+            "summary": "Baby can sense light even with eyes closed.",
+            "days": {
+                "0": "Baby can sense light through fused eyelids.",
+                "1": "Taste buds are fully functional.",
+                "2": "Legs are growing longer than arms.",
+                "3": "Joints are all working; baby is wriggling.",
+                "4": "Three small bones in the inner ear harden.",
+                "5": "Skin is very thin; blood vessels visible.",
+                "6": "Heart is pumping ~25 quarts of blood a day."
+            }
+        },
+        "16": {
+            "size": "Avocado",
+            "length": "4.6 inch",
+            "weight": "100 g",
+            "summary": "Spine and back muscles are strengthening.",
+            "days": {
+                "0": "Baby can hold its head up straighter.",
+                "1": "Facial muscles can move (frown/squint).",
+                "2": "Scalp pattern for hair is established.",
+                "3": "Umbilical cord is fully developed.",
+                "4": "Circulatory system is fully functional.",
+                "5": "Heart beats ~150-180 bpm.",
+                "6": "Baby may start sucking on thumb."
+            }
+        },
+        "17": {
+            "size": "Pear",
+            "length": "5.1 inch",
+            "weight": "140 g",
+            "summary": "Fat stores begin to develop under the skin.",
+            "days": {
+                "0": "Adipose (fat) tissue begins to accumulate.",
+                "1": "Umbilical cord grows thicker/stronger.",
+                "2": "Baby practices swallowing amniotic fluid.",
+                "3": "Skeleton is transforming from cartilage to bone.",
+                "4": "Sweat glands are starting to develop.",
+                "5": "Placenta is growing to accommodate baby's needs.",
+                "6": "Loud noises might startle the baby."
+            }
+        },
+        "18": {
+            "size": "Bell Pepper",
+            "length": "5.6 inch",
+            "weight": "190 g",
+            "summary": "Ears move to final position; hearing improves.",
+            "days": {
+                "0": "Ears are in their final position on the head.",
+                "1": "Baby can hear your heartbeat and digestion.",
+                "2": "Retinas are becoming sensitive to light.",
+                "3": "Genitals are distinct on ultrasound.",
+                "4": "Myelin (nerve coating) begins to form.",
+                "5": "Baby may be active enough for you to feel.",
+                "6": "Hiccups may occur (felt as rhythmic jumps)."
+            }
+        },
+        "19": {
+            "size": "Mango",
+            "length": "6.0 inch",
+            "weight": "240 g",
+            "summary": "Vernix caseosa (waxy coating) forms on skin.",
+            "days": {
+                "0": "Vernix caseosa protects skin from amniotic fluid.",
+                "1": "Sensory areas for smell, taste, hearing, vision develop.",
+                "2": "Baby produces meconium (waste) in bowels.",
+                "3": "Arms and legs are in proportion.",
+                "4": "Kidneys make urine efficiently.",
+                "5": "Baby sleeps and wakes in cycles.",
+                "6": "Hair on scalp is visible."
+            }
+        },
+        "20": {
+            "size": "Banana",
+            "length": "6.5 inch",
+            "weight": "300 g",
+            "summary": "Halfway there! Anatomy scan usually happens now.",
+            "days": {
+                "0": "You are halfway through your pregnancy!",
+                "1": "Baby swallows more to practice digestion.",
+                "2": "Eyebrows and eyelids are fully formed.",
+                "3": "Nails are growing on fingers/toes.",
+                "4": "Baby moves freely in the amniotic sac.",
+                "5": "Heartbeat is audible with a stethoscope.",
+                "6": "Reproductive organs are fully formed."
+            }
+        },
+        "21": {
+            "size": "Carrot",
+            "length": "10.5 inch",
+            "weight": "360 g",
+            "summary": "Digestive system is maturing.",
+            "days": {
+                "0": "Small intestine absorbs sugar from swallowed fluid.",
+                "1": "Liver and spleen regulate blood cells.",
+                "2": "Baby's movements become more coordinated.",
+                "3": "Bone marrow takes over red blood cell production.",
+                "4": "Eyelids are still shut but eyes move behind them.",
+                "5": "Taste buds are fully working.",
+                "6": "Baby has a regular sleep/wake schedule."
+            }
+        },
+        "22": {
+            "size": "Coconut",
+            "length": "10.9 inch",
+            "weight": "430 g",
+            "summary": "Sense of touch develops significantly.",
+            "days": {
+                "0": "Baby explores face and hands by touch.",
+                "1": "Grip is strong enough to hold umbilical cord.",
+                "2": "Eyes are fully formed but irises lack color.",
+                "3": "Pancreas is producing insulin.",
+                "4": "Lungs are developing surfactant (for breathing).",
+                "5": "Baby can hear muffled voices from outside.",
+                "6": "Fine hair (lanugo) covers the entire body."
+            }
+        },
+        "23": {
+            "size": "Grapefruit",
+            "length": "11.4 inch",
+            "weight": "500 g",
+            "summary": "Baby practices breathing movements.",
+            "days": {
+                "0": "Lungs practice 'breathing' amniotic fluid.",
+                "1": "Skin is translucent and red/wrinkled.",
+                "2": "Bones in the middle ear harden further (hearing sharpens).",
+                "3": "Baby recognizes your voice.",
+                "4": "Vestibular system (balance) develops.",
+                "5": "Baby can sense motion (dancing/walking).",
+                "6": "Keratin production starts for skin."
+            }
+        },
+        "24": {
+            "size": "Cantaloupe",
+            "length": "11.8 inch",
+            "weight": "600 g",
+            "summary": "Viability milestone: Lungs sacs begin to form.",
+            "days": {
+                "0": "Baby is considered 'viable' (can survive with help).",
+                "1": "Alveolar sacs form in lungs.",
+                "2": "White blood cells form (immune system).",
+                "3": "Face is almost fully formed.",
+                "4": "Eyelashes start to grow.",
+                "5": "Baby has distinct sleep patterns.",
+                "6": "Skin is becoming more opaque."
+            }
+        },
+        "25": {
+            "size": "Cauliflower",
+            "length": "13.6 inch",
+            "weight": "660 g",
+            "summary": "Capillaries form under the skin.",
+            "days": {
+                "0": "Capillaries fill with blood (skin looks pinker).",
+                "1": "Air sacs in lungs develop further.",
+                "2": "Nostrils open (were previously plugged).",
+                "3": "Hands can make a fist.",
+                "4": "Spine structures begin to harden.",
+                "5": "Baby responds to touch on belly.",
+                "6": "Optic nerve is fully functioning."
+            }
+        },
+        "26": {
+            "size": "Kale",
+            "length": "14.0 inch",
+            "weight": "760 g",
+            "summary": "Eyes open for the first time.",
+            "days": {
+                "0": "Eyelids open! Baby can blink.",
+                "1": "Retinas develop further.",
+                "2": "Baby inhales/exhales amniotic fluid consistently.",
+                "3": "Brain wave activity increases for senses.",
+                "4": "Spine is stronger and suppler.",
+                "5": "Immune system absorbs your antibodies.",
+                "6": "Baby responds to bright light."
+            }
+        },
+        "27": {
+            "size": "Lettuce",
+            "length": "14.4 inch",
+            "weight": "875 g",
+            "summary": "Brain activity shows response to stimuli.",
+            "days": {
+                "0": "Brain tissue grows rapidly.",
+                "1": "Baby can distinguish your voice from others.",
+                "2": "Sleep cycles include REM sleep (dreaming?).",
+                "3": "Lungs are capable of breathing air (with help).",
+                "4": "Taste buds are very sensitive.",
+                "5": "Baby can suck thumb for comfort.",
+                "6": "Skin is less wrinkled as fat adds."
+            }
+        },
+        "28": {
+            "size": "Eggplant",
+            "length": "14.8 inch",
+            "weight": "1 kg",
+            "summary": "Third Trimester! Fat stores increase.",
+            "days": {
+                "0": "Welcome to the 3rd Trimester!",
+                "1": "Body fat increases to regulated temp.",
+                "2": "Eyelashes are visible.",
+                "3": "Baby can stick out tongue.",
+                "4": "Brain grooves (sulci) start to form.",
+                "5": "Bones are fully developed but soft.",
+                "6": "Head hair is growing."
+            }
+        },
+        "29": {
+            "size": "Butternut Squash",
+            "length": "15.2 inch",
+            "weight": "1.15 kg",
+            "summary": "Bones are fully developed but soft.",
+            "days": {
+                "0": "Baby is very active; kicks are strong.",
+                "1": "Skull bones remain separate (for birth).",
+                "2": "Adrenal glands produce estriol.",
+                "3": "Muscle tone improves.",
+                "4": "Baby reacts to foods you eat.",
+                "5": "Vernix coating is thick.",
+                "6": "Eyes can focus."
+            }
+        },
+        "30": {
+            "size": "Cabbage",
+            "length": "15.7 inch",
+            "weight": "1.3 kg",
+            "summary": "Brain surface becomes wrinkled (gyri/sulci).",
+            "days": {
+                "0": "Brain surface folds to fit in skull.",
+                "1": "Red blood cells form in bone marrow.",
+                "2": "Lanugo starts to shed.",
+                "3": "Digestive tract is fully mature.",
+                "4": "Baby tracks light sources.",
+                "5": "Toenails are completely formed.",
+                "6": "Amniotic fluid volume maxes out."
+            }
+        },
+        "31": {
+            "size": "Coconut",
+            "length": "16.2 inch",
+            "weight": "1.5 kg",
+            "summary": "Senses are fully functional.",
+            "days": {
+                "0": "All 5 senses are working.",
+                "1": "Baby turns head side to side.",
+                "2": "Fat accumulation accelerates (smooth skin).",
+                "3": "Kidneys process waste efficiently.",
+                "4": "Lungs practice breathing rhythmically.",
+                "5": "Bladder passes water freely.",
+                "6": "Baby sleeps 90-95% of the day."
+            }
+        },
+        "32": {
+            "size": "Jicama",
+            "length": "16.7 inch",
+            "weight": "1.7 kg",
+            "summary": "Baby practices breathing; preparing for birth.",
+            "days": {
+                "0": "Baby practices breathing movements 10-40% of time.",
+                "1": "Toenails are visible.",
+                "2": "Soft, downy hair (lanugo) falls off.",
+                "3": "Digestive system is ready for milk.",
+                "4": "Baby assumes head-down position (vertex).",
+                "5": "Immune system development peaks.",
+                "6": "Skeleton hardens (ossifies)."
+            }
+        },
+        "33": {
+            "size": "Pineapple",
+            "length": "17.2 inch",
+            "weight": "1.9 kg",
+            "summary": "Immune system is developing; antibodies transfer.",
+            "days": {
+                "0": "Antibodies pass from mother to baby.",
+                "1": "Amniotic fluid levels stay constant.",
+                "2": "Skull remains pliable for birth.",
+                "3": "Baby drinks a pint of amniotic fluid daily.",
+                "4": "Skin is pink/red and smooth.",
+                "5": "Brain coordinates breathing/sucking/swallowing.",
+                "6": "Bones harden except for skull."
+            }
+        },
+        "34": {
+            "size": "Cantaloupe",
+            "length": "17.7 inch",
+            "weight": "2.1 kg",
+            "summary": "Central nervous system connects; lungs mature.",
+            "days": {
+                "0": "Central nervous system is maturing.",
+                "1": "Vernix coating gets thicker.",
+                "2": "Male testicles descend (scrotum visible).",
+                "3": "Fingernails reach fingertips.",
+                "4": "Adrenal glands produce cortisol.",
+                "5": "Baby recognizes songs/lullabies.",
+                "6": "Lung maturation is nearly complete."
+            }
+        },
+        "35": {
+            "size": "Honeydew",
+            "length": "18.2 inch",
+            "weight": "2.4 kg",
+            "summary": "Kidneys measure fully developed.",
+            "days": {
+                "0": "Kidneys are fully developed.",
+                "1": "Liver processes some waste.",
+                "2": "Most physical development is done.",
+                "3": "Baby gains ~1/2 lb per week now.",
+                "4": "Movements feel like rolls/squirming.",
+                "5": "Skull bones overlap gently.",
+                "6": "Baby occupies most of the uterus."
+            }
+        },
+        "36": {
+            "size": "Papaya",
+            "length": "18.7 inch",
+            "weight": "2.6 kg",
+            "summary": "Baby drops into pelvis (lightening).",
+            "days": {
+                "0": "Baby may 'drop' into the pelvis.",
+                "1": "Lungs are ready to breathe air.",
+                "2": "Digestion is ready for breastmilk.",
+                "3": "Vernix and lanugo shed into amniotic fluid.",
+                "4": "Baby swallows shed lanugo (forms meconium).",
+                "5": "Circulation is perfect.",
+                "6": "Gums are rigid."
+            }
+        },
+        "37": {
+            "size": "Romaine Lettuce",
+            "length": "19.1 inch",
+            "weight": "2.9 kg",
+            "summary": "Early Term! Baby is ready for birth.",
+            "days": {
+                "0": "This is considered 'Early Term'.",
+                "1": "Baby practices breathing continuously.",
+                "2": "Dexterity: baby can grasp fingers.",
+                "3": "Toenails reach end of toes.",
+                "4": "Head hair may be full and thick.",
+                "5": "Placenta begins to age.",
+                "6": "Umbilical cord passes antibodies."
+            }
+        },
+        "38": {
+            "size": "Leek",
+            "length": "19.6 inch",
+            "weight": "3.1 kg",
+            "summary": "Vocal cords are ready for the first cry.",
+            "days": {
+                "0": "Vocal cords are fully developed.",
+                "1": "Brain controls all organ systems.",
+                "2": "Baby produces more surfactant.",
+                "3": "Meconium accumulates in intestines.",
+                "4": "Eye color is likely blue/gray/brown (changes later).",
+                "5": "Vernix is mostly gone.",
+                "6": "Reflexes are coordinated."
+            }
+        },
+        "39": {
+            "size": "Watermelon",
+            "length": "20.0 inch",
+            "weight": "3.3 kg",
+            "summary": "Full Term. Baby waits for the signal.",
+            "days": {
+                "0": "Official 'Full Term'.",
+                "1": "New skin cells replace old ones.",
+                "2": "Lungs secrete signals to start labor.",
+                "3": "Brain is still growing rapidly.",
+                "4": "Pinkish skin replaces red.",
+                "5": "Baby is in head-down position.",
+                "6": "Chest sticks out."
+            }
+        },
+        "40": {
+            "size": "Pumpkin",
+            "length": "20.2 inch",
+            "weight": "3.5 kg",
+            "summary": "Due Date! Baby is fully ready.",
+            "days": {
+                "0": "Happy Due Date!",
+                "1": "Only 5% of babies arrive on due date.",
+                "2": "Placenta provides antibodies.",
+                "3": "Skull bones are soft for delivery.",
+                "4": "Baby reserves starch for birth energy.",
+                "5": "Endocrine system triggers labor.",
+                "6": "Baby is ready to meet you!"
+            }
+        },
+        "41": {
+            "size": "Watermelon (Large)",
+            "length": "20.4 inch",
+            "weight": "3.6+ kg",
+            "summary": "Overdue but safe. Monitoring continues.",
+            "days": {
+                "0": "Late Term.",
+                "1": "Baby continues to gain weight.",
+                "2": "Monitoring amniotic fluid levels.",
+                "3": "Vernix is completely gone (dry skin).",
+                "4": "Nails may need trimming at birth.",
+                "5": "Baby is alert.",
+                "6": "Labor induction may be discussed."
+            }
+        },
+        "42": {
+            "size": "Jackfruit",
+            "length": "20.6 inch",
+            "weight": "3.7+ kg",
+            "summary": "Post Term. Delivery is imminent.",
+            "days": {
+                "0": "Post Term pregnancy.",
+                "1": "Monitoring is frequent.",
+                "2": "Baby is very snug.",
+                "3": "Placental function is checked.",
+                "4": "Labor will likely be induced.",
+                "5": "Baby is fully mature.",
+                "6": "Final days before meeting!"
+            }
+        }
+    }
+}

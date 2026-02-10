@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Sun, Moon, Sunrise, Sunset } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import dailyHighlightsData from '../../data/daily_highlights.json';
+import tipsData from '../../data/tips.json';
 import { dbHelpers } from '../../services/database';
 import { useNavigate } from 'react-router-dom';
 import { calculatePregnancyStatus, getTrimester, getDaysUntilDue, getLMPDate } from '../../services/pregnancy-calculator';
@@ -11,6 +14,7 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
+    DialogActions,
     Button,
     IconButton,
     Box,
@@ -18,6 +22,7 @@ import {
     Card,
     CardContent,
     Chip,
+    Divider,
 } from '@mui/material';
 import './HomeScreen.css';
 import NamePromptDialog from '../../components/NamePromptDialog';
@@ -27,9 +32,40 @@ const HomeScreen: React.FC = () => {
     const [status, setStatus] = useState<CurrentPregnancyStatus | null>(null);
     const [isPlanOpen, setIsPlanOpen] = useState(false);
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+    const [currentTipIndex, setCurrentTipIndex] = useState(0);
+    const [showDailyDetail, setShowDailyDetail] = useState(false);
 
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
     const upcomingAppointments = useLiveQuery(() => dbHelpers.getUpcomingAppointments(3));
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTipIndex((prev) => (prev + 1) % tipsData.length);
+        }, 10000); // 10 seconds
+        return () => clearInterval(interval);
+    }, []);
+
+    const getDailyHighlight = () => {
+        if (!status) return null;
+
+        const weekKey = status.weeks.toString();
+        const weekData = (dailyHighlightsData as any).weeks[weekKey];
+
+        const defaultData = {
+            size: "Tiny Miracle",
+            length: "Length varies",
+            weight: "Weight varies",
+            summary: `Week ${status.weeks} is a time of rapid growth and change for your baby.`,
+            days: {}
+        };
+
+        const data = weekData || defaultData;
+
+        return {
+            ...data,
+            dayHighlight: (data.days && data.days[status.days.toString()]) || data.summary || "Your baby is developing new features every single day."
+        };
+    };
 
     useEffect(() => {
         if (config) {
@@ -240,17 +276,189 @@ const HomeScreen: React.FC = () => {
                 </div>
             )}
 
-            <div className="section week-info">
-                <h2>Week {status.weeks} Highlights</h2>
-                <div className="info-card">
-                    <p className="info-text">
-                        Your baby is growing rapidly! This is an exciting time in your pregnancy journey.
-                    </p>
-                    <p className="info-tip">
-                        💡 <strong>Tip:</strong> Stay hydrated and get plenty of rest.
-                    </p>
+            {/* Dynamic Daily Highlights */}
+            {status && (
+                <div className="section week-info">
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h5" fontWeight={700}>Today's Highlights</Typography>
+                    </Box>
+
+                    {(() => {
+                        const dailyInfo = getDailyHighlight();
+                        return dailyInfo ? (
+                            <>
+                                <Card
+                                    elevation={0}
+                                    sx={{
+                                        borderRadius: 4,
+                                        bgcolor: 'white',
+                                        mb: 3,
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s',
+                                        '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }
+                                    }}
+                                    onClick={() => setShowDailyDetail(true)}
+                                >
+                                    {/* ... Card Content remains the same ... */}
+                                    <CardContent sx={{ p: 3 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                                            <Box>
+                                                <Chip
+                                                    label={`WEEK ${status.weeks} • DAY ${status.days + 1}`}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: 'primary.50',
+                                                        color: 'primary.main',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.7rem',
+                                                        mb: 1,
+                                                        borderRadius: 1
+                                                    }}
+                                                />
+                                                <Typography variant="h6" fontWeight={700} color="text.primary" sx={{ lineHeight: 1.2 }}>
+                                                    Baby is the size of a {dailyInfo.size}
+                                                </Typography>
+                                                <Box sx={{ display: 'flex', gap: 1.5, mt: 1.5 }}>
+                                                    <Box sx={{ bgcolor: '#f5f5f5', px: 1.5, py: 0.5, borderRadius: 2 }}>
+                                                        <Typography variant="caption" color="text.secondary" display="block">LENGTH</Typography>
+                                                        <Typography variant="body2" fontWeight={700}>{dailyInfo.length}</Typography>
+                                                    </Box>
+                                                    <Box sx={{ bgcolor: '#f5f5f5', px: 1.5, py: 0.5, borderRadius: 2 }}>
+                                                        <Typography variant="caption" color="text.secondary" display="block">WEIGHT</Typography>
+                                                        <Typography variant="body2" fontWeight={700}>{dailyInfo.weight}</Typography>
+                                                    </Box>
+                                                </Box>
+                                            </Box>
+                                            <Box sx={{
+                                                fontSize: '3.5rem',
+                                                lineHeight: 1,
+                                                filter: 'drop-shadow(0 4px 4px rgba(0,0,0,0.1))'
+                                            }}>
+                                                🤰
+                                            </Box>
+                                        </Box>
+
+                                        <Divider sx={{ my: 2 }} />
+
+                                        <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>
+                                            {dailyInfo.dayHighlight}
+                                        </Typography>
+
+                                        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'primary.main', fontWeight: 600 }}>
+                                            Tap to read more →
+                                        </Typography>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Detailed View Dialog */}
+                                <Dialog
+                                    open={showDailyDetail}
+                                    onClose={() => setShowDailyDetail(false)}
+                                    maxWidth="sm"
+                                    fullWidth
+                                    PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+                                >
+                                    <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <span style={{ fontSize: '1.5rem' }}>👶</span>
+                                        <Typography variant="h6" fontWeight={700}>Week {status.weeks} Overview</Typography>
+                                    </DialogTitle>
+                                    <DialogContent>
+                                        <Box sx={{ mb: 3, bgcolor: 'primary.50', p: 2, borderRadius: 2 }}>
+                                            <Typography variant="subtitle2" color="primary.main" fontWeight={700} gutterBottom>
+                                                WEEKLY SUMMARY
+                                            </Typography>
+                                            <Typography variant="body1" paragraph>
+                                                {dailyInfo.summary}
+                                            </Typography>
+                                        </Box>
+
+                                        <Typography variant="subtitle2" color="text.secondary" fontWeight={700} gutterBottom>
+                                            TODAY (DAY {status.days + 1})
+                                        </Typography>
+                                        <Typography variant="body1" paragraph sx={{ mb: 3 }}>
+                                            {dailyInfo.dayHighlight}
+                                        </Typography>
+
+                                        <Divider sx={{ mb: 2 }} />
+
+                                        <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2, textAlign: 'center' }}>
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary" display="block">SIZE</Typography>
+                                                <Typography variant="body2" fontWeight={700}>{dailyInfo.size}</Typography>
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary" display="block">LENGTH</Typography>
+                                                <Typography variant="body2" fontWeight={700}>{dailyInfo.length}</Typography>
+                                            </Box>
+                                            <Box>
+                                                <Typography variant="caption" color="text.secondary" display="block">WEIGHT</Typography>
+                                                <Typography variant="body2" fontWeight={700}>{dailyInfo.weight}</Typography>
+                                            </Box>
+                                        </Box>
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button onClick={() => setShowDailyDetail(false)} variant="contained" fullWidth sx={{ borderRadius: 2 }}>
+                                            Close
+                                        </Button>
+                                    </DialogActions>
+                                </Dialog>
+                            </>
+                        ) : (
+                            <Card sx={{ p: 3, mb: 3, borderRadius: 3, bgcolor: '#f8f9fa' }} elevation={0}>
+                                <Typography color="text.secondary">Detailed highlights coming soon for Week {status.weeks}!</Typography>
+                            </Card>
+                        );
+                    })()}
+
+                    {/* Rotating Tips Carousel */}
+                    <Card
+                        elevation={0}
+                        sx={{
+                            borderRadius: 4,
+                            bgcolor: '#fff8e1',
+                            border: '1px solid #ffecb3',
+                            position: 'relative',
+                            overflow: 'hidden'
+                        }}
+                    >
+                        <CardContent sx={{ p: 2.5, display: 'flex', gap: 2, alignItems: 'center' }}>
+                            <Box sx={{
+                                fontSize: '1.5rem',
+                                bgcolor: 'white',
+                                width: 40,
+                                height: 40,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '1px solid #ffecb3'
+                            }}>
+                                💡
+                            </Box>
+                            <Box sx={{ flex: 1, overflow: 'hidden', minHeight: 40, display: 'flex', alignItems: 'center' }}>
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={currentTipIndex}
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ duration: 0.5, ease: "easeInOut" }}
+                                        style={{ width: '100%' }}
+                                    >
+                                        <Typography variant="body2" fontWeight={600} color="#795548" sx={{ lineHeight: 1.4 }}>
+                                            {tipsData[currentTipIndex]}
+                                        </Typography>
+                                    </motion.div>
+                                </AnimatePresence>
+                            </Box>
+                        </CardContent>
+                    </Card>
                 </div>
-            </div>
+            )}
 
 
             <Box sx={{ p: 2, pt: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
