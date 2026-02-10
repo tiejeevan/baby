@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTheme } from '../../context/ThemeContext';
-import { Sun, Moon, Sunrise, Sunset } from 'lucide-react';
+import { Sun, Moon, Sunrise, Sunset, BookOpen, AlertCircle, CalendarCheck, Baby } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dailyHighlightsData from '../../data/daily_highlights.json';
+import trimesterData from '../../data/trimester_data.json';
 import tipsData from '../../data/tips.json';
 import { dbHelpers } from '../../services/database';
 import { useNavigate } from 'react-router-dom';
@@ -36,9 +38,17 @@ const HomeScreen: React.FC = () => {
     const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
     const [currentTipIndex, setCurrentTipIndex] = useState(0);
     const [showDailyDetail, setShowDailyDetail] = useState(false);
+    const [showTrimesterDetail, setShowTrimesterDetail] = useState(false);
 
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
     const upcomingAppointments = useLiveQuery(() => dbHelpers.getUpcomingAppointments(3));
+
+    const getCurrentTrimesterData = (weeks: number) => {
+        let trimesterKey = "1";
+        if (weeks >= 14 && weeks <= 27) trimesterKey = "2";
+        if (weeks >= 28) trimesterKey = "3";
+        return (trimesterData as any).trimesters[trimesterKey];
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -240,7 +250,7 @@ const HomeScreen: React.FC = () => {
                                 <div
                                     className="progress-fill"
                                     style={{
-                                        width: `${status.percentComplete}%`,
+                                        width: `${status.percentComplete}% `,
                                         background: greeting.gradient,
                                         borderRadius: 6,
                                         boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -252,7 +262,11 @@ const HomeScreen: React.FC = () => {
                 </Card>
 
                 <div className="stats-grid">
-                    <div className="stat-card" style={{ background: '#f8f9fa', border: 'none' }}>
+                    <div
+                        className="stat-card clickable"
+                        style={{ background: '#f8f9fa', border: 'none', cursor: 'pointer' }}
+                        onClick={() => setShowTrimesterDetail(true)}
+                    >
                         <div className="stat-value">{trimester}</div>
                         <div className="stat-label">Trimester</div>
                     </div>
@@ -267,6 +281,76 @@ const HomeScreen: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Trimester Detail Dialog */}
+            <Dialog
+                open={showTrimesterDetail}
+                onClose={() => setShowTrimesterDetail(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{ sx: { borderRadius: 3, p: 1 } }}
+            >
+                {(() => {
+                    const tData = getCurrentTrimesterData(status.weeks);
+                    return (
+                        <>
+                            <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <BookOpen size={24} color={theme === 'boy' ? '#0288d1' : '#e91e63'} />
+                                <Box>
+                                    <Typography variant="h6" fontWeight={700}>{tData?.title}</Typography>
+                                    <Typography variant="caption" color="text.secondary">{tData?.weeks}</Typography>
+                                </Box>
+                            </DialogTitle>
+                            <DialogContent>
+                                <Box sx={{ mb: 3, bgcolor: theme === 'boy' ? '#e1f5fe' : '#fce4ec', p: 2, borderRadius: 2 }}>
+                                    <Typography variant="body1" paragraph>
+                                        {tData?.overview}
+                                    </Typography>
+                                </Box>
+
+                                <Typography variant="subtitle2" color="text.secondary" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <AlertCircle size={16} /> WHAT TO EXPECT
+                                </Typography>
+                                <Box component="ul" sx={{ pl: 2, mb: 3 }}>
+                                    {tData?.whatToExpect.map((item: string, index: number) => (
+                                        <Typography component="li" key={index} variant="body2" sx={{ mb: 0.5 }}>
+                                            {item}
+                                        </Typography>
+                                    ))}
+                                </Box>
+
+                                <Typography variant="subtitle2" color="text.secondary" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Baby size={16} /> BABY'S DEVELOPMENT
+                                </Typography>
+                                <Box component="ul" sx={{ pl: 2, mb: 3 }}>
+                                    {tData?.babyDevelopment.map((item: string, index: number) => (
+                                        <Typography component="li" key={index} variant="body2" sx={{ mb: 0.5 }}>
+                                            {item}
+                                        </Typography>
+                                    ))}
+                                </Box>
+
+                                <Typography variant="subtitle2" color="text.secondary" fontWeight={700} gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <CalendarCheck size={16} /> CHECKLIST
+                                </Typography>
+                                <Box component="ul" sx={{ pl: 2, mb: 0 }}>
+                                    {tData?.toDoList.map((item: string, index: number) => (
+                                        <Typography component="li" key={index} variant="body2" sx={{ mb: 0.5 }}>
+                                            {item}
+                                        </Typography>
+                                    ))}
+                                </Box>
+
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={() => setShowTrimesterDetail(false)} variant="contained" fullWidth sx={{ borderRadius: 2, bgcolor: theme === 'boy' ? '#0288d1' : '#e91e63' }}>
+                                    Close
+                                </Button>
+                            </DialogActions>
+                        </>
+                    )
+                })()}
+            </Dialog>
 
             <NamePromptDialog
                 open={isNameDialogOpen}
@@ -331,7 +415,7 @@ const HomeScreen: React.FC = () => {
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
                                             <Box>
                                                 <Chip
-                                                    label={`WEEK ${status.weeks} • DAY ${status.days + 1}`}
+                                                    label={`WEEK ${status.weeks} • DAY ${status.days + 1} `}
                                                     size="small"
                                                     sx={{
                                                         bgcolor: 'primary.50',

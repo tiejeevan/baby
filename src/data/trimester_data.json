@@ -1,0 +1,79 @@
+{
+    "trimesters": {
+        "1": {
+            "title": "First Trimester",
+            "weeks": "Weeks 1-13",
+            "overview": "The first trimester is a time of rapid development. Your baby grows from a single fertilized cell into a fetus with all major organ systems in place. For you, it's a time of adjustment as your body floods with hormones.",
+            "whatToExpect": [
+                "Morning sickness and nausea",
+                "Fatigue and sleepiness",
+                "Breast tenderness and changes",
+                "Frequent urination",
+                "Food aversions or cravings"
+            ],
+            "babyDevelopment": [
+                "Heart begins to beat",
+                "Brain and spinal cord form",
+                "Arms and legs begin to grow",
+                "All major organs start developing"
+            ],
+            "toDoList": [
+                "Take prenatal vitamins daily",
+                "Schedule your first prenatal appointment",
+                "Review your insurance coverage",
+                "Avoid raw foods, alcohol, and smoking",
+                "Stay hydrated"
+            ]
+        },
+        "2": {
+            "title": "Second Trimester",
+            "weeks": "Weeks 14-27",
+            "overview": "Often called the 'honeymoon phase' of pregnancy. nausea usually subsides, and energy levels return. You'll likely start to show a baby bump and feel your baby move for the first time!",
+            "whatToExpect": [
+                "Increased energy",
+                "Baby bump becomes visible",
+                "Feeling baby move (Quickening)",
+                "Nasal congestion or nosebleeds",
+                "Round ligament pain"
+            ],
+            "babyDevelopment": [
+                "Baby can hear your voice",
+                "Hair and fingerprints form",
+                "Senses of taste and smell develop",
+                "Sleep cycles are established"
+            ],
+            "toDoList": [
+                "Schedule your anatomy scan (around 20 weeks)",
+                "Start moisturizing your belly",
+                "Sign up for childbirth classes",
+                "Start planning the nursery",
+                "Look into pediatrician options"
+            ]
+        },
+        "3": {
+            "title": "Third Trimester",
+            "weeks": "Weeks 28-40+",
+            "overview": "The home stretch! Your baby is growing rapidly and gaining weight. You might feel more physically uncomfortable as the baby takes up more space, but you're getting closer to meeting your little one.",
+            "whatToExpect": [
+                "Backaches and pelvic pressure",
+                "Shortness of breath",
+                "Braxton Hicks contractions",
+                "Swelling in feet and ankles",
+                "Difficulty sleeping"
+            ],
+            "babyDevelopment": [
+                "Baby opens eyes",
+                "Bones are fully formed but soft",
+                "Lungs are maturing",
+                "Baby moves into head-down position"
+            ],
+            "toDoList": [
+                "Pack your hospital bag",
+                "Install the car seat",
+                "Finalize your birth plan",
+                "Wash baby clothes and bedding",
+                "Rest and save your energy"
+            ]
+        }
+    }
+}
