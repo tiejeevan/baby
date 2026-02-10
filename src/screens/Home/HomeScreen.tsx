@@ -60,6 +60,17 @@ const HomeScreen: React.FC = () => {
     return (
         <div className="home-screen">
             <div className="hero-section">
+                {config.firstName && (
+                    <div style={{ 
+                        textAlign: 'center', 
+                        marginBottom: 'var(--spacing-lg)',
+                        color: 'var(--color-primary)',
+                        fontWeight: 600,
+                        fontSize: '1.25rem'
+                    }}>
+                        Hello, {config.firstName}! 👋
+                    </div>
+                )}
                 <div className="week-display">
                     <div className="week-number">
                         <span className="weeks">{status.weeks}</span>
@@ -136,7 +147,8 @@ const HomeScreen: React.FC = () => {
             </div>
 
 
-            <Box sx={{ p: 2, pt: 0 }}>
+            <Box sx={{ p: 2, pt: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {/* Nutrition & Diet Card */}
                 <Card
                     elevation={0}
                     sx={{
@@ -145,57 +157,156 @@ const HomeScreen: React.FC = () => {
                         borderRadius: 4,
                         position: 'relative',
                         overflow: 'hidden',
-                        mb: 2
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0 8px 24px rgba(86, 171, 47, 0.3)',
+                        }
                     }}
+                    onClick={() => navigate('/diet')}
                 >
-                    <CardContent sx={{ position: 'relative', zIndex: 1 }}>
+                    <CardContent sx={{ position: 'relative', zIndex: 1, p: 3 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box>
-                                <Typography variant="h6" fontWeight="bold">Nutrition & Diet 🥗</Typography>
-                                <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
+                            <Box sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                                    <Box sx={{ 
+                                        fontSize: '2rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: '50%',
+                                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                                    }}>
+                                        🥗
+                                    </Box>
+                                    <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.25rem' }}>
+                                        Nutrition & Diet
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" sx={{ opacity: 0.95, mb: 2, ml: 7.5 }}>
                                     AI-powered meal plans for Week {status?.weeks || 0}
                                 </Typography>
                                 <Button
                                     variant="contained"
-                                    size="small"
-                                    onClick={() => navigate('/diet')}
+                                    size="medium"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigate('/diet');
+                                    }}
                                     sx={{
                                         bgcolor: 'white',
                                         color: '#56ab2f',
                                         fontWeight: 'bold',
-                                        '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' }
+                                        ml: 7.5,
+                                        px: 3,
+                                        py: 1,
+                                        textTransform: 'none',
+                                        borderRadius: 2,
+                                        '&:hover': { 
+                                            bgcolor: 'rgba(255,255,255,0.9)',
+                                            transform: 'scale(1.05)',
+                                        }
                                     }}
                                 >
-                                    Open Diet Plan
+                                    Open Diet Plan →
                                 </Button>
                             </Box>
-                            <Box sx={{ fontSize: '3rem', opacity: 0.8 }}>🥑</Box>
+                            <Box sx={{ 
+                                fontSize: '4rem', 
+                                opacity: 0.3,
+                                position: 'absolute',
+                                right: 16,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                            }}>
+                                🥑
+                            </Box>
                         </Box>
                     </CardContent>
                 </Card>
-            </Box>
 
-            <Box sx={{ p: 2, pb: 4, display: 'flex', justifyContent: 'center' }}>
-                <Button
-                    variant="contained"
-                    onClick={() => setIsPlanOpen(true)}
+                {/* View Full Pregnancy Plan Card */}
+                <Card
+                    elevation={0}
                     sx={{
-                        bgcolor: 'primary.main',
+                        background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
                         color: 'white',
                         borderRadius: 4,
-                        px: 4,
-                        py: 1.5,
-                        fontWeight: 600,
-                        textTransform: 'none',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
                         '&:hover': {
-                            bgcolor: 'primary.dark',
-                            boxShadow: '0 6px 16px rgba(0,0,0,0.15)',
+                            transform: 'translateY(-4px)',
+                            boxShadow: '0 8px 24px rgba(245, 87, 108, 0.3)',
                         }
                     }}
+                    onClick={() => setIsPlanOpen(true)}
                 >
-                    📅 View Full Pregnancy Plan
-                </Button>
+                    <CardContent sx={{ position: 'relative', zIndex: 1, p: 3 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box sx={{ flex: 1 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                                    <Box sx={{ 
+                                        fontSize: '2rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: '50%',
+                                        bgcolor: 'rgba(255, 255, 255, 0.2)',
+                                    }}>
+                                        📅
+                                    </Box>
+                                    <Typography variant="h6" fontWeight="bold" sx={{ fontSize: '1.25rem' }}>
+                                        Pregnancy Plan
+                                    </Typography>
+                                </Box>
+                                <Typography variant="body2" sx={{ opacity: 0.95, mb: 2, ml: 7.5 }}>
+                                    Complete week-by-week pregnancy journey
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    size="medium"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsPlanOpen(true);
+                                    }}
+                                    sx={{
+                                        bgcolor: 'white',
+                                        color: '#f5576c',
+                                        fontWeight: 'bold',
+                                        ml: 7.5,
+                                        px: 3,
+                                        py: 1,
+                                        textTransform: 'none',
+                                        borderRadius: 2,
+                                        '&:hover': { 
+                                            bgcolor: 'rgba(255,255,255,0.9)',
+                                            transform: 'scale(1.05)',
+                                        }
+                                    }}
+                                >
+                                    View Full Plan →
+                                </Button>
+                            </Box>
+                            <Box sx={{ 
+                                fontSize: '4rem', 
+                                opacity: 0.3,
+                                position: 'absolute',
+                                right: 16,
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                            }}>
+                                🤰
+                            </Box>
+                        </Box>
+                    </CardContent>
+                </Card>
             </Box>
 
             <Dialog

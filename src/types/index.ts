@@ -2,6 +2,8 @@
 
 export interface PregnancyConfig {
     id?: number;
+    firstName?: string;
+    lastName?: string;
     referenceDate: string; // ISO date string
     referenceWeeks: number; // e.g., 8
     referenceDays: number; // e.g., 2
@@ -142,14 +144,6 @@ export interface CustomReminder {
     notificationId?: number;
     repeatDaily: boolean;
     isAlarm?: boolean; // Play alarm sound
-}
-
-
-export interface ChatMessage {
-    id?: number;
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-    createdAt: string;
 }
 
 // --- Diet & Health Types ---

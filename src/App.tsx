@@ -5,10 +5,10 @@ import AppLayout from './components/Layout/AppLayout';
 import HomeScreen from './screens/Home/HomeScreen';
 import TimelineScreen from './screens/Timeline/TimelineScreen';
 import CalendarScreen from './screens/Calendar/CalendarScreen';
-import ChatScreen from './screens/Chat/ChatScreen';
 import SettingsScreen from './screens/Settings/SettingsScreen';
 import OnboardingScreen from './screens/Onboarding/OnboardingScreen';
 import DietScreen from './screens/Diet/DietScreen';
+import NamePromptDialog from './components/NamePromptDialog';
 import { notificationService } from './services/notifications';
 import { storageService } from './services/storage';
 import { dbHelpers } from './services/database';
@@ -20,7 +20,27 @@ import { ThemeProvider } from './context/ThemeContext';
 
 function App() {
   const [initialized, setInitialized] = useState(false);
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
   const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
+
+  useEffect(() => {
+    // Check if user has name set
+    if (config && (!config.firstName || !config.lastName)) {
+      setShowNamePrompt(true);
+    }
+  }, [config]);
+
+  const handleNameSave = async (firstName: string, lastName: string) => {
+    if (config) {
+      await dbHelpers.savePregnancyConfig({
+        ...config,
+        firstName,
+        lastName,
+        updatedAt: new Date().toISOString(),
+      });
+      setShowNamePrompt(false);
+    }
+  };
 
   useEffect(() => {
     // Initialize services
@@ -103,6 +123,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <NamePromptDialog open={showNamePrompt} onSave={handleNameSave} />
       <BrowserRouter>
         <BackButtonHandler />
         <Routes>
@@ -110,7 +131,6 @@ function App() {
             <Route index element={<HomeScreen />} />
             <Route path="timeline" element={<TimelineScreen />} />
             <Route path="calendar" element={<CalendarScreen />} />
-            <Route path="chat" element={<ChatScreen />} />
             <Route path="settings" element={<SettingsScreen />} />
             <Route path="diet" element={<DietScreen />} />
             <Route path="*" element={<Navigate to="/" replace />} />

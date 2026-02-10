@@ -7,7 +7,6 @@ import type {
     Medication,
     Photo,
     ReminderSettings,
-    ChatMessage,
     DietPreference,
     DailyDietPlan,
     WaterLog,
@@ -22,7 +21,6 @@ export class PregnancyDatabase extends Dexie {
     medications!: Table<Medication, number>;
     photos!: Table<Photo, string>;
     reminderSettings!: Table<ReminderSettings, number>;
-    chatMessages!: Table<ChatMessage, number>;
     dietPreferences!: Table<DietPreference, number>;
     dailyDietPlans!: Table<DailyDietPlan, number>;
     waterLogs!: Table<WaterLog, number>;
@@ -39,7 +37,6 @@ export class PregnancyDatabase extends Dexie {
             medications: '++id, name, startDate, endDate',
             photos: 'id, date, associatedWith, associatedId, createdAt',
             reminderSettings: '++id, createdAt',
-            chatMessages: '++id, createdAt',
         });
 
         this.version(4).stores({
@@ -240,19 +237,6 @@ export const dbHelpers = {
             return existing.id;
         }
         return await db.reminderSettings.add(settings as ReminderSettings);
-    },
-
-    // Chat Messages
-    async getChatMessages(limit = 50): Promise<ChatMessage[]> {
-        return await db.chatMessages.orderBy('createdAt').reverse().limit(limit).reverse().toArray();
-    },
-
-    async addChatMessage(message: Omit<ChatMessage, 'id'>): Promise<number> {
-        return await db.chatMessages.add(message as ChatMessage);
-    },
-
-    async clearChatHistory(): Promise<void> {
-        await db.chatMessages.clear();
     },
 
     // --- Diet & Health Helpers ---

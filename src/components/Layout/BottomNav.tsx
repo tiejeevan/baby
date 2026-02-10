@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, ScrollText, Calendar, Sparkles } from 'lucide-react';
+import { Home, ScrollText, Calendar } from 'lucide-react';
 import './BottomNav.css';
 
 const BottomNav: React.FC = () => {
@@ -25,13 +25,6 @@ const BottomNav: React.FC = () => {
                     <Calendar size={24} strokeWidth={2.5} />
                 </div>
                 <span className="nav-label">Calendar</span>
-            </NavLink>
-
-            <NavLink to="/chat" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-                <div className="icon-container">
-                    <Sparkles size={24} strokeWidth={2.5} />
-                </div>
-                <span className="nav-label">AI Chat</span>
             </NavLink>
         </nav>
     );

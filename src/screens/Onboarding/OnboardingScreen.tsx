@@ -8,6 +8,8 @@ interface OnboardingScreenProps {
 
 const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
     const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
         referenceDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
         referenceWeeks: 0,
         referenceDays: 0,
@@ -34,6 +36,28 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="onboarding-form">
+                    <div className="form-group">
+                        <label>First Name</label>
+                        <input
+                            type="text"
+                            value={formData.firstName}
+                            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                            placeholder="Enter your first name"
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Last Name</label>
+                        <input
+                            type="text"
+                            value={formData.lastName}
+                            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                            placeholder="Enter your last name"
+                            required
+                        />
+                    </div>
+
                     <div className="form-group">
                         <label>Reference Date</label>
                         <input

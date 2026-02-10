@@ -14,7 +14,6 @@ const AppLayout: React.FC = () => {
             case '/': return 'My Journey';
             case '/timeline': return 'Our Story'; // Or "Timeline"
             case '/calendar': return 'Calendar';
-            case '/chat': return 'AI Assistant';
             case '/settings': return 'Settings';
             default: return 'Baby Tracker';
         }
