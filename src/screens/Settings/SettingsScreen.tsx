@@ -255,21 +255,7 @@ const SettingsScreen: React.FC = () => {
                 </Card>
             </Paper>
 
-            {/* Disclaimer Section */}
-            <Paper elevation={2} sx={{ p: 3, borderRadius: 3 }}>
-                <Typography variant="h5" fontWeight={700} gutterBottom>
-                    ⚠️ Disclaimer
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
 
-                <Alert severity="warning" sx={{ borderRadius: 2 }}>
-                    <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                        This app is for informational purposes only and is not a substitute for professional medical advice,
-                        diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with
-                        any questions you may have regarding your pregnancy or medical condition.
-                    </Typography>
-                </Alert>
-            </Paper>
         </Container>
     );
 };

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Sun, Moon, Sunrise, Sunset } from 'lucide-react';
 import { dbHelpers } from '../../services/database';
 import { useNavigate } from 'react-router-dom';
 import { calculatePregnancyStatus, getTrimester, getDaysUntilDue, getLMPDate } from '../../services/pregnancy-calculator';
@@ -17,14 +18,15 @@ import {
     Card,
     CardContent,
     Chip,
-
 } from '@mui/material';
 import './HomeScreen.css';
+import NamePromptDialog from '../../components/NamePromptDialog';
 
 const HomeScreen: React.FC = () => {
     const navigate = useNavigate();
     const [status, setStatus] = useState<CurrentPregnancyStatus | null>(null);
     const [isPlanOpen, setIsPlanOpen] = useState(false);
+    const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
 
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
     const upcomingAppointments = useLiveQuery(() => dbHelpers.getUpcomingAppointments(3));
@@ -33,15 +35,28 @@ const HomeScreen: React.FC = () => {
         if (config) {
             // Force current date to ensure we're using device time
             const now = new Date();
-            console.log('Current date:', now.toISOString());
-            console.log('Config:', config);
+            // console.log('Current date:', now.toISOString());
 
             const currentStatus = calculatePregnancyStatus(config, now);
-            console.log('Calculated status:', currentStatus);
-
             setStatus(currentStatus);
+
+            // Check if name is missing
+            if (!config.firstName) {
+                setIsNameDialogOpen(true);
+            }
         }
     }, [config]);
+
+    const handleSaveName = async (firstName: string, lastName: string) => {
+        if (config) {
+            await dbHelpers.savePregnancyConfig({
+                ...config,
+                firstName,
+                lastName
+            });
+            setIsNameDialogOpen(false);
+        }
+    };
 
     if (!config || !status) {
         return (
@@ -57,56 +72,147 @@ const HomeScreen: React.FC = () => {
     const trimester = getTrimester(status.weeks);
     const daysUntilDue = getDaysUntilDue(status.dueDate);
 
-    return (
-        <div className="home-screen">
-            <div className="hero-section">
-                {config.firstName && (
-                    <div style={{ 
-                        textAlign: 'center', 
-                        marginBottom: 'var(--spacing-lg)',
-                        color: 'var(--color-primary)',
-                        fontWeight: 600,
-                        fontSize: '1.25rem'
-                    }}>
-                        Hello, {config.firstName}! 👋
-                    </div>
-                )}
-                <div className="week-display">
-                    <div className="week-number">
-                        <span className="weeks">{status.weeks}</span>
-                        <span className="label">weeks</span>
-                    </div>
-                    <div className="day-number">
-                        <span className="days">{status.days}</span>
-                        <span className="label">days</span>
-                    </div>
-                </div>
+    // Get dynamic greeting based on time of day
+    // Get dynamic greeting based on time of day
+    const getGreeting = () => {
+        const hour = new Date().getHours();
 
-                <div className="progress-container">
-                    <div className="progress-bar">
-                        <div
-                            className="progress-fill"
-                            style={{ width: `${status.percentComplete}%` }}
-                        />
-                    </div>
-                    <p className="progress-text">{status.percentComplete.toFixed(1)}% complete</p>
-                </div>
+        if (hour >= 5 && hour < 12) {
+            return {
+                text: 'Good Morning',
+                icon: <Sunrise size={28} color="#FFD700" strokeWidth={1.5} />,
+                gradient: 'linear-gradient(135deg, #FFE5B4 0%, #FFD700 100%)'
+            };
+        } else if (hour >= 12 && hour < 17) {
+            return {
+                text: 'Good Afternoon',
+                icon: <Sun size={28} color="#F6A192" strokeWidth={1.5} />,
+                gradient: 'linear-gradient(135deg, #FDB99B 0%, #F6A192 100%)'
+            };
+        } else if (hour >= 17 && hour < 21) {
+            return {
+                text: 'Good Evening',
+                icon: <Sunset size={28} color="#9D84B7" strokeWidth={1.5} />,
+                gradient: 'linear-gradient(135deg, #C9A9E9 0%, #9D84B7 100%)'
+            };
+        } else {
+            return {
+                text: 'Good Night',
+                icon: <Moon size={28} color="#4C63D2" strokeWidth={1.5} />,
+                gradient: 'linear-gradient(135deg, #667EEA 0%, #4C63D2 100%)'
+            };
+        }
+    };
+
+    const greeting = getGreeting();
+
+    return (
+        <div className="home-screen" style={{ marginTop: -20 }}>
+            {/* Seamless Header */}
+            <Box sx={{
+                pt: 6,
+                pb: 4,
+                px: 3,
+                background: 'linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.5) 100%)',
+                mb: 2
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, opacity: 0.9 }}>
+                    {greeting.icon}
+                    <Typography variant="subtitle2" fontWeight="bold" sx={{
+                        textTransform: 'uppercase',
+                        fontSize: '0.75rem',
+                        letterSpacing: '1.5px',
+                        color: 'text.secondary',
+                        pt: 0.5
+                    }}>
+                        {greeting.text}
+                    </Typography>
+                </Box>
+                <Typography variant="h3" fontWeight={800} sx={{
+                    background: greeting.gradient,
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    display: 'inline-block',
+                    fontSize: '2.5rem',
+                    lineHeight: 1.2,
+                    mb: 1
+                }}>
+                    {config.firstName || 'Mama'}
+                </Typography>
+                <Typography variant="h6" sx={{
+                    color: 'text.primary',
+                    fontWeight: 600,
+                    mt: 1,
+                    fontSize: '1.2rem',
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    gap: 0.5
+                }}>
+                    You are in <Box component="span" sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.5rem' }}>Week {status.weeks}</Box>, Day {status.days}
+                </Typography>
+            </Box>
+
+            <div className="hero-section" style={{ marginTop: 0 }}>
+                <Card elevation={0} sx={{
+                    borderRadius: 4,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'rgba(255,255,255,0.7)',
+                    backdropFilter: 'blur(10px)',
+                    mb: 4
+                }}>
+                    <CardContent sx={{ p: 3 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'flex-end' }}>
+                            <Box>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ letterSpacing: 1 }}>PROGRESS</Typography>
+                                <Typography variant="h4" fontWeight="bold" color="primary.main">
+                                    {status.percentComplete.toFixed(0)}%
+                                </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'right' }}>
+                                <Typography variant="h6" fontWeight="bold">{daysUntilDue}</Typography>
+                                <Typography variant="caption" color="text.secondary">DAYS LEFT</Typography>
+                            </Box>
+                        </Box>
+
+                        <div className="progress-container" style={{ marginTop: 0 }}>
+                            <div className="progress-bar" style={{ height: 12, borderRadius: 6, backgroundColor: '#eff2f5' }}>
+                                <div
+                                    className="progress-fill"
+                                    style={{
+                                        width: `${status.percentComplete}%`,
+                                        background: greeting.gradient,
+                                        borderRadius: 6,
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 <div className="stats-grid">
-                    <div className="stat-card">
+                    <div className="stat-card" style={{ background: '#f8f9fa', border: 'none' }}>
                         <div className="stat-value">{trimester}</div>
                         <div className="stat-label">Trimester</div>
                     </div>
-                    <div className="stat-card">
-                        <div className="stat-value">{daysUntilDue}</div>
-                        <div className="stat-label">Days Until Due</div>
+                    {/* Size comparison could go here if available, using existing stat card for now */}
+                    <div className="stat-card" style={{ background: '#fff0f3', border: 'none' }}>
+                        <div className="stat-value">Baby</div>
+                        <div className="stat-label">is growing</div> {/* Placeholder since we don't have size in status yet */}
                     </div>
-                    <div className="stat-card">
+                    <div className="stat-card" style={{ background: '#e3f2fd', border: 'none' }}>
                         <div className="stat-value">{new Date(status.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
                         <div className="stat-label">Due Date</div>
                     </div>
                 </div>
             </div>
+
+            <NamePromptDialog
+                open={isNameDialogOpen}
+                onSave={handleSaveName}
+            />
 
             {upcomingAppointments && upcomingAppointments.length > 0 && (
                 <div className="section">
@@ -170,7 +276,7 @@ const HomeScreen: React.FC = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Box sx={{ flex: 1 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                                    <Box sx={{ 
+                                    <Box sx={{
                                         fontSize: '2rem',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -205,7 +311,7 @@ const HomeScreen: React.FC = () => {
                                         py: 1,
                                         textTransform: 'none',
                                         borderRadius: 2,
-                                        '&:hover': { 
+                                        '&:hover': {
                                             bgcolor: 'rgba(255,255,255,0.9)',
                                             transform: 'scale(1.05)',
                                         }
@@ -214,8 +320,8 @@ const HomeScreen: React.FC = () => {
                                     Open Diet Plan →
                                 </Button>
                             </Box>
-                            <Box sx={{ 
-                                fontSize: '4rem', 
+                            <Box sx={{
+                                fontSize: '4rem',
                                 opacity: 0.3,
                                 position: 'absolute',
                                 right: 16,
@@ -250,7 +356,7 @@ const HomeScreen: React.FC = () => {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Box sx={{ flex: 1 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                                    <Box sx={{ 
+                                    <Box sx={{
                                         fontSize: '2rem',
                                         display: 'flex',
                                         alignItems: 'center',
@@ -285,7 +391,7 @@ const HomeScreen: React.FC = () => {
                                         py: 1,
                                         textTransform: 'none',
                                         borderRadius: 2,
-                                        '&:hover': { 
+                                        '&:hover': {
                                             bgcolor: 'rgba(255,255,255,0.9)',
                                             transform: 'scale(1.05)',
                                         }
@@ -294,8 +400,8 @@ const HomeScreen: React.FC = () => {
                                     View Full Plan →
                                 </Button>
                             </Box>
-                            <Box sx={{ 
-                                fontSize: '4rem', 
+                            <Box sx={{
+                                fontSize: '4rem',
                                 opacity: 0.3,
                                 position: 'absolute',
                                 right: 16,
