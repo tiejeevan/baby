@@ -31,7 +31,7 @@ export class PregnancyDatabase extends Dexie {
 
         this.version(3).stores({
             pregnancyConfig: '++id, referenceDate, createdAt',
-            milestones: '++id, type, date, createdAt',
+            milestones: '++id, type, date, week, createdAt',
             calendarEntries: '++id, date, createdAt',
             appointments: '++id, date, time, createdAt',
             medications: '++id, name, startDate, endDate',

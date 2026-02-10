@@ -46,7 +46,8 @@ import {
     Event as EventIcon,
     ChildCare as ChildCareIcon,
     LocalHospital as HospitalIcon,
-    Science as ScienceIcon
+    Science as ScienceIcon,
+    Close as CloseIcon
 } from '@mui/icons-material';
 import { format, addDays } from 'date-fns';
 
@@ -80,6 +81,124 @@ const getMilestoneIcon = (type: MilestoneType) => {
     }
 };
 
+// --- Photo Preview Component ---
+
+const PhotoPreview: React.FC<{ photoId: string }> = ({ photoId }) => {
+    const [src, setSrc] = useState<string>('');
+    const [fullSrc, setFullSrc] = useState<string>('');
+    const [error, setError] = useState<boolean>(false);
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadPhoto = async () => {
+            setError(false);
+            try {
+                // Try to load thumbnail first for performance (if it exists)
+                try {
+                    const thumbUri = await storageService.readPhoto(`pregnancy-photos/${photoId}_thumb.jpg`);
+                    if (isMounted) {
+                        setSrc(thumbUri);
+                        return; // Successfully loaded thumbnail
+                    }
+                } catch (e) {
+                    // unexpected, maybe thumbnail doesn't exist yet
+                }
+
+                // If no thumb or failed, load original
+                const uri = await storageService.readPhoto(`pregnancy-photos/${photoId}.jpg`);
+                if (isMounted) {
+                    setSrc(uri);
+                    setFullSrc(uri); // It's already the full one
+                }
+            } catch (e) {
+                console.error(`Failed to load photo ${photoId}`, e);
+                if (isMounted) setError(true);
+            }
+        };
+        loadPhoto();
+        return () => { isMounted = false; };
+    }, [photoId]);
+
+    const handleOpen = () => {
+        setIsOpen(true);
+        // Load full res if not already loaded
+        if (!fullSrc) {
+            storageService.readPhoto(`pregnancy-photos/${photoId}.jpg`)
+                .then(uri => setFullSrc(uri))
+                .catch(e => console.error("Failed to load full res", e));
+        }
+    };
+
+    const handleClose = () => setIsOpen(false);
+
+    if (error) {
+        return (
+            <Box
+                width={60}
+                height={60}
+                bgcolor="error.light"
+                borderRadius={1}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                title="Failed to load"
+            >
+                <Typography variant="caption" color="white" fontWeight="bold">!</Typography>
+            </Box>
+        );
+    }
+
+    if (!src) return <Box width={60} height={60} bgcolor="grey.200" borderRadius={1} />;
+
+    return (
+        <>
+            <Avatar
+                src={src}
+                variant="rounded"
+                sx={{ width: 60, height: 60, cursor: 'pointer', border: '1px solid #eee' }}
+                onClick={handleOpen}
+            />
+
+            <Dialog
+                open={isOpen}
+                onClose={handleClose}
+                maxWidth="lg"
+                PaperProps={{
+                    sx: {
+                        bgcolor: 'black',
+                        boxShadow: 'none',
+                        m: 1,
+                        overflow: 'hidden',
+                        borderRadius: 2
+                    }
+                }}
+            >
+                <Box position="relative" display="flex" justifyContent="center" alignItems="center" bgcolor="black" minHeight="50vh">
+                    <IconButton
+                        onClick={handleClose}
+                        sx={{ position: 'absolute', top: 8, right: 8, color: 'white', bgcolor: 'rgba(0,0,0,0.5)', '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' } }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+
+                    {fullSrc ? (
+                        <img
+                            src={fullSrc}
+                            alt="Memory"
+                            style={{ maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain' }}
+                        />
+                    ) : (
+                        <Box display="flex" justifyContent="center" alignItems="center" p={4}>
+                            <Typography color="white">Loading...</Typography>
+                        </Box>
+                    )}
+                </Box>
+            </Dialog>
+        </>
+    );
+};
+
 const TimelineScreen: React.FC = () => {
     const theme = useTheme();
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
@@ -98,12 +217,14 @@ const TimelineScreen: React.FC = () => {
         date: string;
         notes: string;
         photoIds: string[];
+        week?: number;
     }>({
         type: 'custom',
         title: '',
         date: new Date().toISOString().split('T')[0],
         notes: '',
-        photoIds: [] as string[]
+        photoIds: [] as string[],
+        week: undefined
     });
 
     // --- Data Processing ---
@@ -119,10 +240,25 @@ const TimelineScreen: React.FC = () => {
             const startDate = getWeekStartDate(config, w);
             const endDate = addDays(startDate, 6);
 
+            // Format dates for safe string comparison (YYYY-MM-DD)
+            const startDateStr = format(startDate, 'yyyy-MM-dd');
+            const endDateStr = format(endDate, 'yyyy-MM-dd');
+
             // Find milestones in this week range
             const weekMilestones = milestones?.filter(m => {
-                const mDate = new Date(m.date);
-                return mDate >= startDate && mDate <= endDate;
+                // Priority 1: Check explicit week link
+                if (m.week !== undefined) {
+                    return m.week === w;
+                }
+
+                // Priority 2: Fallback to date range check (legacy support)
+                // Use string comparison to avoid timezone issues
+                if (m.date) {
+                    const mDateStr = m.date.split('T')[0];
+                    return mDateStr >= startDateStr && mDateStr <= endDateStr;
+                }
+
+                return false;
             }) || [];
 
             // Get highlights from JSON
@@ -157,7 +293,7 @@ const TimelineScreen: React.FC = () => {
         setExpandedWeek(expandedWeek === week ? null : week);
     };
 
-    const handleOpenDialog = (milestone?: Milestone, weekDate?: string) => {
+    const handleOpenDialog = (milestone?: Milestone, weekData?: { week: number, date: string }) => {
         if (milestone) {
             setEditingMilestone(milestone);
             setFormData({
@@ -165,17 +301,18 @@ const TimelineScreen: React.FC = () => {
                 title: milestone.title,
                 date: milestone.date,
                 notes: milestone.notes || '',
-                photoIds: milestone.photoIds
+                photoIds: milestone.photoIds,
+                week: milestone.week
             });
-            // TODO: Load existing photos for preview if needed
         } else {
             setEditingMilestone(null);
             setFormData({
                 type: 'custom',
                 title: '',
-                date: weekDate || new Date().toISOString().split('T')[0],
+                date: weekData?.date || new Date().toISOString().split('T')[0],
                 notes: '',
-                photoIds: []
+                photoIds: [],
+                week: weekData?.week // Store the week number for new milestones
             });
         }
         setTempPhotos([]);
@@ -350,11 +487,12 @@ const TimelineScreen: React.FC = () => {
                                             )}
 
                                             {/* User Milestones */}
-                                            {node.milestones.length > 0 && (
-                                                <Box mb={2}>
-                                                    <Typography variant="caption" fontWeight="bold" color="secondary" sx={{ display: 'block', mb: 1 }}>
-                                                        YOUR MEMORIES
-                                                    </Typography>
+                                            <Box mb={2}>
+                                                <Typography variant="caption" fontWeight="bold" color="secondary" sx={{ display: 'block', mb: 1 }}>
+                                                    YOUR MEMORIES
+                                                </Typography>
+
+                                                {node.milestones.length > 0 ? (
                                                     <Stack spacing={1}>
                                                         {node.milestones.map((m) => (
                                                             <Card key={m.id} variant="outlined" sx={{ borderRadius: 2, borderColor: alpha(theme.palette.secondary.main, 0.2) }}>
@@ -385,15 +523,27 @@ const TimelineScreen: React.FC = () => {
                                                             </Card>
                                                         ))}
                                                     </Stack>
-                                                </Box>
-                                            )}
+                                                ) : (
+                                                    <Box
+                                                        bgcolor={alpha(theme.palette.action.disabledBackground, 0.3)}
+                                                        borderRadius={2}
+                                                        p={2}
+                                                        textAlign="center"
+                                                        border={`1px dashed ${theme.palette.divider}`}
+                                                    >
+                                                        <Typography variant="body2" color="text.secondary" fontSize="0.85rem">
+                                                            No memories yet for Week {node.week}.
+                                                        </Typography>
+                                                    </Box>
+                                                )}
+                                            </Box>
 
                                             <Button
                                                 variant="outlined"
                                                 startIcon={<AddIcon />}
                                                 size="small"
                                                 fullWidth
-                                                onClick={() => handleOpenDialog(undefined, format(node.startDate, 'yyyy-MM-dd'))}
+                                                onClick={() => handleOpenDialog(undefined, { week: node.week, date: format(node.startDate, 'yyyy-MM-dd') })}
                                                 sx={{ borderRadius: 2, textTransform: 'none' }}
                                             >
                                                 Add Memory for Week {node.week}
@@ -506,71 +656,6 @@ const TimelineScreen: React.FC = () => {
                 </DialogActions>
             </Dialog>
         </Box>
-    );
-};
-
-// Component to load and display a photo from ID
-const PhotoPreview: React.FC<{ photoId: string }> = ({ photoId }) => {
-    const [src, setSrc] = useState<string>('');
-    const [error, setError] = useState<boolean>(false);
-
-    useEffect(() => {
-        let isMounted = true;
-        const loadPhoto = async () => {
-            setError(false);
-            try {
-                // Try to load thumbnail first for performance (if it exists)
-                try {
-                    const thumbUri = await storageService.readPhoto(`pregnancy-photos/${photoId}_thumb.jpg`);
-                    if (isMounted) {
-                        setSrc(thumbUri);
-                        return; // Successfully loaded thumbnail
-                    }
-                } catch (e) {
-                    // unexpected, maybe thumbnail doesn't exist yet
-                }
-
-                // If no thumb or failed, load original
-                const uri = await storageService.readPhoto(`pregnancy-photos/${photoId}.jpg`);
-                if (isMounted) setSrc(uri);
-            } catch (e) {
-                console.error(`Failed to load photo ${photoId}`, e);
-                if (isMounted) setError(true);
-            }
-        };
-        loadPhoto();
-        return () => { isMounted = false; };
-    }, [photoId]);
-
-    if (error) {
-        return (
-            <Box
-                width={60}
-                height={60}
-                bgcolor="error.light"
-                borderRadius={1}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                title="Failed to load"
-            >
-                <Typography variant="caption" color="white" fontWeight="bold">!</Typography>
-            </Box>
-        );
-    }
-
-    if (!src) return <Box width={60} height={60} bgcolor="grey.200" borderRadius={1} />;
-
-    return (
-        <Avatar
-            src={src}
-            variant="rounded"
-            sx={{ width: 60, height: 60, cursor: 'pointer', border: '1px solid #eee' }}
-            onClick={() => {
-                // TODO: Implement full screen view
-                console.log("Clicked photo", photoId);
-            }}
-        />
     );
 };
 
