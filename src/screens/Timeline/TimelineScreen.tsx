@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { dbHelpers } from '../../services/database';
 import { storageService } from '../../services/storage';
 import type { Milestone, MilestoneType } from '../../types';
-import { calculatePregnancyDuration, getWeekStartDate } from '../../utils/pregnancy';
+import { calculatePregnancyStatus, getWeekRangeDates } from '../../services/pregnancy-calculator';
 import dailyHighlightsData from '../../data/daily_highlights.json';
 import { useLocation } from 'react-router-dom';
 import {
@@ -50,7 +50,7 @@ import {
     Science as ScienceIcon,
     Close as CloseIcon
 } from '@mui/icons-material';
-import { format, addDays } from 'date-fns';
+import { format } from 'date-fns';
 
 // --- Types ---
 
@@ -236,13 +236,13 @@ const TimelineScreen: React.FC = () => {
     const timelineNodes = useMemo(() => {
         if (!config) return [];
 
-        const { weeks: currentWeek } = calculatePregnancyDuration(config);
+        const status = calculatePregnancyStatus(config);
+        const { weeks: currentWeek } = status;
         const nodes: TimelineNode[] = [];
         const TOTAL_WEEKS = 42;
 
         for (let w = 1; w <= TOTAL_WEEKS; w++) {
-            const startDate = getWeekStartDate(config, w);
-            const endDate = addDays(startDate, 6);
+            const { start: startDate, end: endDate } = getWeekRangeDates(w, config);
 
             // Format dates for safe string comparison (YYYY-MM-DD)
             const startDateStr = format(startDate, 'yyyy-MM-dd');
@@ -266,7 +266,6 @@ const TimelineScreen: React.FC = () => {
             }) || [];
 
             // Get highlights from JSON
-            // JSON keys are strings "4", "5", etc.
             const highlights = (dailyHighlightsData.weeks as any)[w.toString()];
 
             nodes.push({
@@ -286,8 +285,8 @@ const TimelineScreen: React.FC = () => {
     // Initialize expanded week to current week
     useEffect(() => {
         if (config && expandedWeek === null) {
-            const { weeks } = calculatePregnancyDuration(config);
-            setExpandedWeek(weeks > 0 ? weeks : 1);
+            const status = calculatePregnancyStatus(config);
+            setExpandedWeek(status.weeks > 0 ? status.weeks : 1);
         }
     }, [config, expandedWeek]);
 
@@ -330,9 +329,9 @@ const TimelineScreen: React.FC = () => {
         const searchParams = new URLSearchParams(location.search);
         const action = searchParams.get('action');
         if (action === 'add-memo' && config) {
-            const { weeks } = calculatePregnancyDuration(config);
-            const weekToOpen = weeks > 0 ? weeks : 1;
-            const startDate = getWeekStartDate(config, weekToOpen);
+            const status = calculatePregnancyStatus(config);
+            const weekToOpen = status.weeks > 0 ? status.weeks : 1;
+            const { start: startDate } = getWeekRangeDates(weekToOpen, config);
 
             // Give a small delay to ensure rendering is complete
             setTimeout(() => {
@@ -446,9 +445,14 @@ const TimelineScreen: React.FC = () => {
                 mb: 2
             }}>
                 <Typography variant="h5" fontWeight="bold" color="primary">Your Journey</Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Week {calculatePregnancyDuration(config).weeks} • Day {calculatePregnancyDuration(config).days}
-                </Typography>
+                {(() => {
+                    const status = calculatePregnancyStatus(config);
+                    return (
+                        <Typography variant="body2" color="text.secondary">
+                            Week {status.weeks} • Day {status.days}
+                        </Typography>
+                    );
+                })()}
             </Box>
 
             <Timeline position="right" sx={{ px: 0 }}>

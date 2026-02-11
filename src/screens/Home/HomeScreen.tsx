@@ -12,7 +12,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { calculatePregnancyStatus, getTrimester, getDaysUntilDue, getLMPDate } from '../../services/pregnancy-calculator';
 import type { CurrentPregnancyStatus } from '../../types';
 import pregnancyPlan from '../../data/pregnancy_plan.json';
-import { addDays } from 'date-fns';
+import { addDays, parseISO, format as formatInfo } from 'date-fns';
 import {
     Dialog,
     DialogTitle,
@@ -52,9 +52,9 @@ const HomeScreen: React.FC = () => {
         if (!status) return null;
         const currentTrimester = getTrimester(status.weeks);
         const targetTrimester = currentTrimester + offset;
-        
+
         if (targetTrimester < 1 || targetTrimester > 3) return null;
-        
+
         return (trimesterData as any).trimesters[targetTrimester.toString()];
     };
 
@@ -336,7 +336,9 @@ const HomeScreen: React.FC = () => {
                         <div className="stat-label">is growing</div> {/* Placeholder since we don't have size in status yet */}
                     </div>
                     <div className="stat-card" style={{ background: '#e3f2fd', border: 'none' }}>
-                        <div className="stat-value">{new Date(status.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                        <div className="stat-value">
+                            {status.dueDate ? formatInfo(parseISO(status.dueDate), 'MMM d') : ''}
+                        </div>
                         <div className="stat-label">Due Date</div>
                     </div>
                 </div>
@@ -357,7 +359,7 @@ const HomeScreen: React.FC = () => {
                     const tData = getTrimesterDataByOffset(currentTrimesterView);
                     const currentTrimester = status ? getTrimester(status.weeks) : 1;
                     const viewingTrimester = currentTrimester + currentTrimesterView;
-                    
+
                     if (!tData) return null;
 
                     return (
@@ -369,11 +371,11 @@ const HomeScreen: React.FC = () => {
                                         <Typography variant="h6" fontWeight={700}>
                                             {tData?.title}
                                             {viewingTrimester === currentTrimester && (
-                                                <Chip 
-                                                    label="CURRENT" 
-                                                    size="small" 
-                                                    sx={{ ml: 1, height: 20, fontSize: '0.65rem' }} 
-                                                    color="primary" 
+                                                <Chip
+                                                    label="CURRENT"
+                                                    size="small"
+                                                    sx={{ ml: 1, height: 20, fontSize: '0.65rem' }}
+                                                    color="primary"
                                                 />
                                             )}
                                         </Typography>
@@ -381,22 +383,22 @@ const HomeScreen: React.FC = () => {
                                     </Box>
                                 </Box>
                                 <Box sx={{ display: 'flex', gap: 0.5 }}>
-                                    <IconButton 
-                                        size="small" 
+                                    <IconButton
+                                        size="small"
                                         onClick={() => setCurrentTrimesterView(prev => prev - 1)}
                                         disabled={viewingTrimester <= 1}
-                                        sx={{ 
+                                        sx={{
                                             bgcolor: 'action.hover',
                                             '&:disabled': { opacity: 0.3 }
                                         }}
                                     >
                                         ←
                                     </IconButton>
-                                    <IconButton 
-                                        size="small" 
+                                    <IconButton
+                                        size="small"
                                         onClick={() => setCurrentTrimesterView(prev => prev + 1)}
                                         disabled={viewingTrimester >= 3}
-                                        sx={{ 
+                                        sx={{
                                             bgcolor: 'action.hover',
                                             '&:disabled': { opacity: 0.3 }
                                         }}
@@ -456,13 +458,13 @@ const HomeScreen: React.FC = () => {
                                 </AnimatePresence>
                             </DialogContent>
                             <DialogActions>
-                                <Button 
+                                <Button
                                     onClick={() => {
                                         setShowTrimesterDetail(false);
                                         setCurrentTrimesterView(0);
-                                    }} 
-                                    variant="contained" 
-                                    fullWidth 
+                                    }}
+                                    variant="contained"
+                                    fullWidth
                                     sx={{ borderRadius: 2, bgcolor: theme === 'boy' ? '#0288d1' : '#e91e63' }}
                                 >
                                     Close
@@ -510,22 +512,22 @@ const HomeScreen: React.FC = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                         <Typography variant="h5" fontWeight={700}>Today's Highlights</Typography>
                         <Box sx={{ display: 'flex', gap: 0.5 }}>
-                            <IconButton 
-                                size="small" 
+                            <IconButton
+                                size="small"
                                 onClick={() => setCurrentDayOffset(prev => prev - 1)}
                                 disabled={currentDayOffset <= -((status.weeks * 7) + status.days - 7)} // Can't go before week 1
-                                sx={{ 
+                                sx={{
                                     bgcolor: 'action.hover',
                                     '&:disabled': { opacity: 0.3 }
                                 }}
                             >
                                 ←
                             </IconButton>
-                            <IconButton 
-                                size="small" 
+                            <IconButton
+                                size="small"
                                 onClick={() => setCurrentDayOffset(prev => prev + 1)}
                                 disabled={currentDayOffset >= (280 - ((status.weeks * 7) + status.days))} // Can't go beyond week 40
-                                sx={{ 
+                                sx={{
                                     bgcolor: 'action.hover',
                                     '&:disabled': { opacity: 0.3 }
                                 }}
@@ -538,7 +540,7 @@ const HomeScreen: React.FC = () => {
                     {(() => {
                         const dailyInfo = getDailyHighlightByOffset(currentDayOffset);
                         const isCurrentDay = currentDayOffset === 0;
-                        
+
                         return dailyInfo ? (
                             <>
                                 <AnimatePresence mode="wait">
