@@ -46,10 +46,6 @@ android/.gradle/
 android/local.properties
 android/.idea/
 android/*.iml
-ios/App/Pods/
-ios/App/build/
-ios/App/*.xcworkspace/xcuserdata/
-ios/App/*.xcodeproj/xcuserdata/
 
 # System Files
 Thumbs.db

@@ -31,11 +31,8 @@ import java.io.InputStream;
 @CapacitorPlugin(name = "OcrPlugin")
 public class OcrPlugin extends Plugin {
     private static final String TAG = "OcrPlugin";
-    private static final int REQUEST_CAMERA = 1001;
-    private static final int REQUEST_GALLERY = 1002;
     
     private TextRecognizer recognizer;
-    private Uri tempImageUri;
 
     @Override
     public void load() {
@@ -55,7 +52,7 @@ public class OcrPlugin extends Plugin {
     public void scanTextFromCamera(PluginCall call) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
-            startActivityForResult(call, takePictureIntent, REQUEST_CAMERA);
+            startActivityForResult(call, takePictureIntent, "handleCameraResult");
         } else {
             call.reject("Camera not available");
         }
@@ -66,7 +63,7 @@ public class OcrPlugin extends Plugin {
         Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         pickPhotoIntent.setType("image/*");
         if (pickPhotoIntent.resolveActivity(getContext().getPackageManager()) != null) {
-            startActivityForResult(call, pickPhotoIntent, REQUEST_GALLERY);
+            startActivityForResult(call, pickPhotoIntent, "handleGalleryResult");
         } else {
             call.reject("Gallery not available");
         }
@@ -138,24 +135,6 @@ public class OcrPlugin extends Plugin {
             }
         } else {
             call.reject("Gallery selection cancelled");
-        }
-    }
-
-    @Override
-    protected void handleOnActivityResult(int requestCode, int resultCode, Intent data) {
-        super.handleOnActivityResult(requestCode, resultCode, data);
-        
-        PluginCall savedCall = getSavedCall();
-        if (savedCall == null) {
-            return;
-        }
-
-        if (requestCode == REQUEST_CAMERA) {
-            ActivityResult result = new ActivityResult(resultCode, data);
-            handleCameraResult(savedCall, result);
-        } else if (requestCode == REQUEST_GALLERY) {
-            ActivityResult result = new ActivityResult(resultCode, data);
-            handleGalleryResult(savedCall, result);
         }
     }
 
