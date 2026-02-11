@@ -296,11 +296,11 @@ const TimelineScreen: React.FC = () => {
         if (config && currentWeekRef.current) {
             // Scroll to current week
             setTimeout(() => {
-                currentWeekRef.current?.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center' 
+                currentWeekRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
                 });
-                
+
                 // Trigger highlight animation
                 setHighlightCurrentWeek(true);
                 setTimeout(() => {
@@ -314,18 +314,35 @@ const TimelineScreen: React.FC = () => {
     useEffect(() => {
         if (location.state && (location.state as any).timestamp && currentWeekRef.current) {
             setTimeout(() => {
-                currentWeekRef.current?.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'center' 
+                currentWeekRef.current?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
                 });
-                
+
                 setHighlightCurrentWeek(true);
                 setTimeout(() => {
                     setHighlightCurrentWeek(false);
                 }, 2000);
             }, 300);
         }
-    }, [location]);
+
+        // Handle Shortcut/Deep Link Action
+        const searchParams = new URLSearchParams(location.search);
+        const action = searchParams.get('action');
+        if (action === 'add-memo' && config) {
+            const { weeks } = calculatePregnancyDuration(config);
+            const weekToOpen = weeks > 0 ? weeks : 1;
+            const startDate = getWeekStartDate(config, weekToOpen);
+
+            // Give a small delay to ensure rendering is complete
+            setTimeout(() => {
+                handleOpenDialog(undefined, {
+                    week: weekToOpen,
+                    date: format(startDate, 'yyyy-MM-dd')
+                });
+            }, 500);
+        }
+    }, [location, config]);
 
     // --- Handlers ---
 
@@ -436,8 +453,8 @@ const TimelineScreen: React.FC = () => {
 
             <Timeline position="right" sx={{ px: 0 }}>
                 {timelineNodes.map((node) => (
-                    <TimelineItem 
-                        key={node.week} 
+                    <TimelineItem
+                        key={node.week}
                         sx={{ '&:before': { flex: 0, padding: 0 } }}
                         ref={node.isCurrent ? currentWeekRef : null}
                     >

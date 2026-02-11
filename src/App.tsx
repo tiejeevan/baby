@@ -18,6 +18,50 @@ import './styles/global.css';
 import './styles/themes.css';
 import { ThemeProvider } from './context/ThemeContext';
 
+import { useNavigate } from 'react-router-dom';
+import { AppShortcuts } from '@capawesome/capacitor-app-shortcuts';
+
+// Component to handle app shortcuts within the Router context
+const ShortcutHandler = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const initializeShortcuts = async () => {
+      try {
+        // Set up the dynamic shortcut
+        await AppShortcuts.set({
+          shortcuts: [
+            {
+              id: 'add-memo',
+              title: 'Add Memo',
+              description: 'Add Memory for Week',
+              androidIcon: 'ic_menu_edit',
+              iosIcon: 'square.and.pencil',
+            },
+          ],
+        });
+
+        // Listen for shortcut clicks
+        const listener = await AppShortcuts.addListener('click', (event) => {
+          if (event.shortcutId === 'add-memo') {
+            navigate('/timeline?action=add-memo');
+          }
+        });
+
+        return () => {
+          listener.remove();
+        };
+      } catch (error) {
+        console.error('Error handling shortcuts:', error);
+      }
+    };
+
+    initializeShortcuts();
+  }, [navigate]);
+
+  return null;
+};
+
 function App() {
   const [initialized, setInitialized] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
@@ -125,6 +169,7 @@ function App() {
     <ThemeProvider>
       <NamePromptDialog open={showNamePrompt} onSave={handleNameSave} />
       <BrowserRouter>
+        <ShortcutHandler />
         <BackButtonHandler />
         <Routes>
           <Route path="/" element={<AppLayout />}>
