@@ -79,6 +79,20 @@ const CalendarScreen: React.FC = () => {
         [currentDate]
     );
 
+    // Query appointments for the current month
+    const allAppointments = useLiveQuery(() => dbHelpers.getAllAppointments(), []);
+    
+    const appointmentsForMonth = React.useMemo(() => {
+        if (!allAppointments) return [];
+        const monthStart = startOfMonth(currentDate);
+        const monthEnd = endOfMonth(currentDate);
+        
+        return allAppointments.filter(apt => {
+            const aptDate = new Date(apt.date);
+            return aptDate >= monthStart && aptDate <= monthEnd;
+        });
+    }, [allAppointments, currentDate]);
+
 
     const pregnancyConfig = useLiveQuery(() => dbHelpers.getPregnancyConfig());
 
@@ -103,12 +117,18 @@ const CalendarScreen: React.FC = () => {
         const dateStr = format(date, 'yyyy-MM-dd');
         const entry = calendarEntries?.find(entry => entry.date === dateStr);
         const hasPlan = planEvents.some(event => event.date === dateStr);
+        const hasAppointment = appointmentsForMonth.some(apt => apt.date === dateStr);
 
-        if (hasPlan) return true;
+        if (hasPlan || hasAppointment) return true;
 
         if (!entry) return false;
         // Only show indicator if there are actual activities or reminders
         return !!((entry.activities && entry.activities.length > 0) || (entry.reminders && entry.reminders.length > 0));
+    };
+
+    const getAppointmentsForDate = (date: Date) => {
+        const dateStr = format(date, 'yyyy-MM-dd');
+        return appointmentsForMonth.filter(apt => apt.date === dateStr);
     };
 
     const getPlanEventsForDate = (date: Date) => {
@@ -194,6 +214,7 @@ const CalendarScreen: React.FC = () => {
                     date={selectedDate}
                     entry={getEntryForDate(selectedDate)}
                     planEvents={getPlanEventsForDate(selectedDate)}
+                    appointments={getAppointmentsForDate(selectedDate)}
                     onClose={() => setSelectedDate(null)}
                 />
             )}
@@ -206,11 +227,12 @@ interface DateDetailPanelProps {
     date: Date;
     entry: CalendarEntry | undefined;
     planEvents: typeof pregnancyPlan & { date: string }[];
+    appointments: any[]; // Add appointments prop
     onClose: () => void;
 }
 
 
-const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, planEvents, onClose }) => {
+const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, planEvents, appointments, onClose }) => {
     // Activities and Reminders State
     const [activities, setActivities] = useState<Activity[]>(entry?.activities || []);
     const [reminders, setReminders] = useState<DateReminder[]>(entry?.reminders || []);
@@ -566,6 +588,80 @@ const DateDetailPanel: React.FC<DateDetailPanelProps> = ({ date, entry, planEven
                         </Box>
 
                         <Divider />
+
+                        {/* Appointments Section (from shared images) */}
+                        {appointments && appointments.length > 0 && (
+                            <Box>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}>
+                                    📅 Appointments
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                    {appointments.map((appointment) => (
+                                        <Card
+                                            key={appointment.id}
+                                            variant="outlined"
+                                            sx={{
+                                                borderRadius: 2,
+                                                bgcolor: 'success.50',
+                                                borderColor: 'success.200',
+                                                transition: 'all 0.2s',
+                                                '&:hover': {
+                                                    boxShadow: 2,
+                                                    borderColor: 'success.main'
+                                                }
+                                            }}
+                                        >
+                                            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                                                    <Typography sx={{ fontSize: '1.5rem' }}>📅</Typography>
+                                                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                                                        <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5, color: 'success.900' }}>
+                                                            {appointment.title}
+                                                        </Typography>
+                                                        <Chip
+                                                            label={appointment.time}
+                                                            size="small"
+                                                            sx={{
+                                                                bgcolor: 'success.100',
+                                                                color: 'success.800',
+                                                                fontWeight: 600,
+                                                                fontSize: '0.75rem',
+                                                                mb: appointment.notes ? 1 : 0
+                                                            }}
+                                                        />
+                                                        {appointment.notes && (
+                                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                                                {appointment.notes}
+                                                            </Typography>
+                                                        )}
+                                                        {appointment.location && (
+                                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                                                📍 {appointment.location}
+                                                            </Typography>
+                                                        )}
+                                                    </Box>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={async () => {
+                                                            const confirmed = window.confirm(
+                                                                `Are you sure you want to delete "${appointment.title}"?\n\nThis action cannot be undone.`
+                                                            );
+                                                            if (confirmed && appointment.id) {
+                                                                await dbHelpers.deleteAppointment(appointment.id);
+                                                            }
+                                                        }}
+                                                        sx={{ color: 'error.main' }}
+                                                    >
+                                                        🗑️
+                                                    </IconButton>
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </Box>
+                                <Divider sx={{ mt: 3 }} />
+                            </Box>
+                        )}
 
                         {/* Plan Events Section */}
                         {planEvents && planEvents.length > 0 && (

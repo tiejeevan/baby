@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { Dialog, DialogContent } from '@mui/material';
 import AppLayout from './components/Layout/AppLayout';
 import HomeScreen from './screens/Home/HomeScreen';
 import TimelineScreen from './screens/Timeline/TimelineScreen';
@@ -8,7 +9,10 @@ import CalendarScreen from './screens/Calendar/CalendarScreen';
 import SettingsScreen from './screens/Settings/SettingsScreen';
 import OnboardingScreen from './screens/Onboarding/OnboardingScreen';
 import DietScreen from './screens/Diet/DietScreen';
+import ImageReminderDemo from './screens/ImageReminderDemo';
 import NamePromptDialog from './components/NamePromptDialog';
+import SharedImageProcessor from './screens/SharedImageProcessor';
+import ImageSharePlugin from './plugins/image-share-plugin';
 import { notificationService } from './services/notifications';
 import { storageService } from './services/storage';
 import { dbHelpers } from './services/database';
@@ -65,6 +69,7 @@ const ShortcutHandler = () => {
 function App() {
   const [initialized, setInitialized] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [showImageProcessor, setShowImageProcessor] = useState(false);
   const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
 
   useEffect(() => {
@@ -134,6 +139,23 @@ function App() {
         // Initialize photo storage
         await storageService.initializeStorage();
 
+        // Check for shared images
+        const pendingIntent = await ImageSharePlugin.checkPendingIntent();
+        if (pendingIntent.hasImage || pendingIntent.hasImages) {
+          setShowImageProcessor(true);
+        }
+
+        // Listen for shared images
+        ImageSharePlugin.addListener('sharedImage', () => {
+          setShowImageProcessor(true);
+        });
+        ImageSharePlugin.addListener('viewImage', () => {
+          setShowImageProcessor(true);
+        });
+        ImageSharePlugin.addListener('sharedImages', () => {
+          setShowImageProcessor(true);
+        });
+
         setInitialized(true);
         console.log('App initialized successfully');
       } catch (error) {
@@ -168,6 +190,18 @@ function App() {
   return (
     <ThemeProvider>
       <NamePromptDialog open={showNamePrompt} onSave={handleNameSave} />
+      
+      <Dialog 
+        open={showImageProcessor} 
+        onClose={() => setShowImageProcessor(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogContent>
+          <SharedImageProcessor onComplete={() => setShowImageProcessor(false)} />
+        </DialogContent>
+      </Dialog>
+
       <BrowserRouter>
         <ShortcutHandler />
         <BackButtonHandler />
@@ -178,6 +212,7 @@ function App() {
             <Route path="calendar" element={<CalendarScreen />} />
             <Route path="settings" element={<SettingsScreen />} />
             <Route path="diet" element={<DietScreen />} />
+            <Route path="image-reminder-demo" element={<ImageReminderDemo />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
