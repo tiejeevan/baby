@@ -48,9 +48,14 @@ import {
     ChildCare as ChildCareIcon,
     LocalHospital as HospitalIcon,
     Science as ScienceIcon,
-    Close as CloseIcon
+    Close as CloseIcon,
+    PlayCircleOutline as PlayCircleOutlineIcon,
+    InsertDriveFile as InsertDriveFileIcon
 } from '@mui/icons-material';
 import { format } from 'date-fns';
+import { Capacitor } from '@capacitor/core';
+import { FileOpener } from '@capacitor-community/file-opener';
+import type { FileAttachment } from '../../types';
 
 // --- Types ---
 
@@ -80,6 +85,113 @@ const getMilestoneIcon = (type: MilestoneType) => {
         case 'ultrasound': return <ScienceIcon color="info" />;
         case 'custom': default: return <EventIcon color="secondary" />;
     }
+};
+
+// --- Attachment Preview Component ---
+
+const AttachmentPreview: React.FC<{ attachment: FileAttachment }> = ({ attachment }) => {
+    const [fullSrc, setFullSrc] = useState<string>('');
+    const [isOpen, setIsOpen] = useState(false);
+
+    const isImage = attachment.type.startsWith('image/');
+    const isVideo = attachment.type.startsWith('video/');
+
+    const handleOpen = async () => {
+        if (!isImage && !isVideo) {
+            // For generic documents
+            try {
+                const uri = await storageService.getFileUri(attachment.filepath);
+
+                if (Capacitor.isNativePlatform()) {
+                    await FileOpener.open({
+                        filePath: uri,
+                        contentType: attachment.type || 'application/octet-stream',
+                    });
+                } else {
+                    // Fallback for web
+                    window.open(Capacitor.convertFileSrc(uri));
+                }
+            } catch (e) {
+                console.error("Failed to open document", e);
+            }
+            return;
+        }
+
+        setIsOpen(true);
+        if (!fullSrc) {
+            try {
+                const uri = await storageService.getFileUri(attachment.filepath);
+                setFullSrc(Capacitor.convertFileSrc(uri));
+            } catch (e) {
+                console.error("Failed to load full res", e);
+            }
+        }
+    };
+
+    const handleClose = () => setIsOpen(false);
+
+    return (
+        <>
+            <Box
+                onClick={handleOpen}
+                sx={{
+                    width: 60, height: 60, cursor: 'pointer', border: '1px solid #eee',
+                    borderRadius: 1, display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center', bgcolor: 'grey.100',
+                    overflow: 'hidden', position: 'relative'
+                }}
+            >
+                {isImage ? (
+                    <Avatar
+                        sx={{ width: '100%', height: '100%', bgcolor: 'grey.300' }}
+                        variant="rounded"
+                    >
+                        <PhotoCameraIcon />
+                    </Avatar>
+                ) : isVideo ? (
+                    <Box sx={{ width: '100%', height: '100%', bgcolor: 'black', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <PlayCircleOutlineIcon sx={{ color: 'white' }} />
+                    </Box>
+                ) : (
+                    <>
+                        <InsertDriveFileIcon color="primary" />
+                        <Typography variant="caption" sx={{ fontSize: '0.5rem', mt: 0.5, px: 0.5, textAlign: 'center', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {attachment.name.split('.').pop()?.toUpperCase()}
+                        </Typography>
+                    </>
+                )}
+            </Box>
+
+            {(isImage || isVideo) && (
+                <Dialog
+                    open={isOpen}
+                    onClose={handleClose}
+                    maxWidth="lg"
+                    PaperProps={{
+                        sx: { bgcolor: 'black', boxShadow: 'none', m: 1, overflow: 'hidden', borderRadius: 2 }
+                    }}
+                >
+                    <Box position="relative" display="flex" justifyContent="center" alignItems="center" bgcolor="black" minHeight="50vh" minWidth={{ xs: '90vw', sm: '70vw' }}>
+                        <IconButton onClick={handleClose} sx={{ position: 'absolute', top: 8, right: 8, color: 'white', zIndex: 10, bgcolor: 'rgba(0,0,0,0.5)', '&:hover': { bgcolor: 'rgba(0,0,0,0.7)' } }}>
+                            <CloseIcon />
+                        </IconButton>
+
+                        {fullSrc ? (
+                            isVideo ? (
+                                <video src={fullSrc} controls autoPlay style={{ maxWidth: '100%', maxHeight: '85vh' }} />
+                            ) : (
+                                <img src={fullSrc} alt="Attachment" style={{ maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain' }} />
+                            )
+                        ) : (
+                            <Box display="flex" justifyContent="center" alignItems="center" p={4}>
+                                <Typography color="white">Loading Media...</Typography>
+                            </Box>
+                        )}
+                    </Box>
+                </Dialog>
+            )}
+        </>
+    );
 };
 
 // --- Photo Preview Component ---
@@ -237,7 +349,7 @@ const TimelineScreen: React.FC = () => {
         if (!config) return [];
 
         const status = calculatePregnancyStatus(config);
-        const { weeks: currentWeek } = status;
+        const currentWeek = status.weeks > 0 ? status.weeks : 1;
         const nodes: TimelineNode[] = [];
         const TOTAL_WEEKS = 42;
 
@@ -279,6 +391,27 @@ const TimelineScreen: React.FC = () => {
                 highlights
             });
         }
+
+        // Add External/Other Memories Bucket
+        const outOfBoundsMilestones = milestones?.filter(m => {
+            if (m.week && (m.week > 42 || m.week < 1)) return true;
+            if (m.week === 99) return true;
+            return false;
+        }) || [];
+
+        if (outOfBoundsMilestones.length > 0) {
+            nodes.push({
+                week: 99,
+                startDate: new Date(),
+                endDate: new Date(),
+                isPast: false,
+                isCurrent: false,
+                isFuture: false,
+                milestones: outOfBoundsMilestones,
+                highlights: undefined
+            });
+        }
+
         return nodes;
     }, [config, milestones]);
 
@@ -286,7 +419,8 @@ const TimelineScreen: React.FC = () => {
     useEffect(() => {
         if (config && expandedWeek === null) {
             const status = calculatePregnancyStatus(config);
-            setExpandedWeek(status.weeks > 0 ? status.weeks : 1);
+            const initialWeek = status.weeks > 0 ? status.weeks : 1;
+            setExpandedWeek(initialWeek > 0 ? initialWeek : 1);
         }
     }, [config, expandedWeek]);
 
@@ -330,7 +464,8 @@ const TimelineScreen: React.FC = () => {
         const action = searchParams.get('action');
         if (action === 'add-memo' && config) {
             const status = calculatePregnancyStatus(config);
-            const weekToOpen = status.weeks > 0 ? status.weeks : 1;
+            const targetW = status.weeks > 0 ? status.weeks : 1;
+            const weekToOpen = targetW > 0 ? targetW : 1;
             const { start: startDate } = getWeekRangeDates(weekToOpen, config);
 
             // Give a small delay to ensure rendering is complete
@@ -464,11 +599,13 @@ const TimelineScreen: React.FC = () => {
                     >
                         <TimelineOppositeContent sx={{ flex: 'auto', maxWidth: '80px', px: 1, pt: 2, textAlign: 'right' }}>
                             <Typography variant="subtitle2" fontWeight="bold" color={node.isCurrent ? 'primary' : 'text.secondary'}>
-                                Week {node.week}
+                                {node.week === 99 ? 'Gallery' : `Week ${node.week}`}
                             </Typography>
-                            <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
-                                {format(node.startDate, 'MMM d')}
-                            </Typography>
+                            {node.week !== 99 && (
+                                <Typography variant="caption" display="block" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                                    {format(node.startDate, 'MMM d')}
+                                </Typography>
+                            )}
                         </TimelineOppositeContent>
 
                         <TimelineSeparator>
@@ -511,23 +648,37 @@ const TimelineScreen: React.FC = () => {
                                     <Box display="flex" justifyContent="space-between" alignItems="center" onClick={() => handleExpandClick(node.week)} sx={{ cursor: 'pointer' }}>
                                         <Box display="flex" alignItems="center" gap={1.5}>
                                             <Avatar sx={{ bgcolor: node.isCurrent ? theme.palette.primary.light : theme.palette.grey[200], width: 40, height: 40 }}>
-                                                <Typography fontSize="1.2rem">{node.highlights?.size?.charAt(0) || '?'}</Typography>
+                                                <Typography fontSize="1.2rem">{node.week === 99 ? '?' : (node.highlights?.size?.charAt(0) || '?')}</Typography>
                                             </Avatar>
                                             <Box>
                                                 <Typography variant="subtitle2" fontWeight="bold">
-                                                    Size: {node.highlights?.size || 'Growing'}
+                                                    {node.week === 99 ? "External Memories" : `Size: ${node.highlights?.size || 'Growing'}`}
                                                 </Typography>
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {node.highlights?.weight || ''} {node.highlights?.length ? `• ${node.highlights.length}` : ''}
-                                                </Typography>
+                                                {node.week !== 99 && (
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {node.highlights?.weight || ''} {node.highlights?.length ? `• ${node.highlights.length}` : ''}
+                                                    </Typography>
+                                                )}
                                             </Box>
                                         </Box>
-                                        <IconButton
-                                            size="small"
-                                            sx={{ transform: expandedWeek === node.week ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}
-                                        >
-                                            <ExpandMoreIcon />
-                                        </IconButton>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            {node.milestones.length > 0 && (
+                                                <Chip
+                                                    icon={<PhotoCameraIcon sx={{ fontSize: '1rem', marginLeft: '5px' }} />}
+                                                    label={`${node.milestones.length} Mem${node.milestones.length > 1 ? 'ories' : 'ory'}`}
+                                                    size="small"
+                                                    color="primary"
+                                                    variant="filled"
+                                                    sx={{ height: 24, fontSize: '0.7rem', opacity: 0.9, backgroundColor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main, '& .MuiChip-icon': { color: theme.palette.primary.main } }}
+                                                />
+                                            )}
+                                            <IconButton
+                                                size="small"
+                                                sx={{ transform: expandedWeek === node.week ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.3s' }}
+                                            >
+                                                <ExpandMoreIcon />
+                                            </IconButton>
+                                        </Box>
                                     </Box>
 
                                     {/* Collapsible Details */}
@@ -587,11 +738,16 @@ const TimelineScreen: React.FC = () => {
                                                                             "{m.notes}"
                                                                         </Typography>
                                                                     )}
-                                                                    {/* Photo Gallery */}
-                                                                    {m.photoIds.length > 0 && (
+                                                                    {/* Media Gallery */}
+                                                                    {(m.photoIds.length > 0 || (m.attachments && m.attachments.length > 0)) && (
                                                                         <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                                                                            {/* Legacy Photo rendering */}
                                                                             {m.photoIds.map((pid, idx) => (
-                                                                                <PhotoPreview key={idx} photoId={pid} />
+                                                                                <PhotoPreview key={`photo_${idx}`} photoId={pid} />
+                                                                            ))}
+                                                                            {/* New Attachments rendering */}
+                                                                            {m.attachments?.map((att, idx) => (
+                                                                                <AttachmentPreview key={`att_${idx}`} attachment={att} />
                                                                             ))}
                                                                         </Box>
                                                                     )}
@@ -614,16 +770,18 @@ const TimelineScreen: React.FC = () => {
                                                 )}
                                             </Box>
 
-                                            <Button
-                                                variant="outlined"
-                                                startIcon={<AddIcon />}
-                                                size="small"
-                                                fullWidth
-                                                onClick={() => handleOpenDialog(undefined, { week: node.week, date: format(node.startDate, 'yyyy-MM-dd') })}
-                                                sx={{ borderRadius: 2, textTransform: 'none' }}
-                                            >
-                                                Add Memory for Week {node.week}
-                                            </Button>
+                                            {node.week !== 99 && (
+                                                <Button
+                                                    variant="outlined"
+                                                    startIcon={<AddIcon />}
+                                                    size="small"
+                                                    fullWidth
+                                                    onClick={() => handleOpenDialog(undefined, { week: node.week, date: format(node.startDate, 'yyyy-MM-dd') })}
+                                                    sx={{ borderRadius: 2, textTransform: 'none' }}
+                                                >
+                                                    Add Memory for Week {node.week}
+                                                </Button>
+                                            )}
                                         </AccordionDetails>
                                     </Accordion>
                                 </CardContent>
