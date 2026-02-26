@@ -29,6 +29,7 @@ export interface Milestone {
     date: string; // ISO date string
     notes?: string;
     photoIds: string[]; // References to photos in filesystem
+    attachments?: FileAttachment[]; // References to mixed media (images, videos, docs)
     week?: number;
     createdAt: string;
     updatedAt: string;

@@ -1,19 +1,29 @@
 import { registerPlugin } from '@capacitor/core';
 import type { PluginListenerHandle } from '@capacitor/core';
 
-export interface ImageShareData {
-    imageUri: string;
+export interface FileShareData {
+    imageUri: string; // Original property for backward compatibility
+    mimeType: string;
+    timestamp: string;
+    name?: string;
 }
+
+export interface ImageShareData extends FileShareData {}
 
 export interface ImagesShareData {
     imageUris: string[];
+    files: FileShareData[];
 }
 
 export interface PendingIntentResult {
     hasImage?: boolean;
     imageUri?: string;
+    mimeType?: string;
+    timestamp?: string;
+    name?: string;
     hasImages?: boolean;
     imageUris?: string[];
+    files?: FileShareData[];
 }
 
 export interface ImageSharePluginInterface {

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useTheme } from '../../context/ThemeContext';
-import { Sun, Moon, Sunrise, Sunset, BookOpen, AlertCircle, CalendarCheck, Baby } from 'lucide-react';
+import { Sun, Moon, Sunrise, Sunset, BookOpen, AlertCircle, CalendarCheck, Baby, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import dailyHighlightsData from '../../data/daily_highlights.json';
 import trimesterData from '../../data/trimester_data.json';
@@ -12,7 +12,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { calculatePregnancyStatus, getTrimester, getDaysUntilDue, getLMPDate } from '../../services/pregnancy-calculator';
 import type { CurrentPregnancyStatus } from '../../types';
 import pregnancyPlan from '../../data/pregnancy_plan.json';
-import { addDays, parseISO, format as formatInfo } from 'date-fns';
+import { addDays, parseISO, format as formatInfo, intervalToDuration } from 'date-fns';
 import {
     Dialog,
     DialogTitle,
@@ -26,6 +26,7 @@ import {
     CardContent,
     Chip,
     Divider,
+    Popover,
 } from '@mui/material';
 import './HomeScreen.css';
 import NamePromptDialog from '../../components/NamePromptDialog';
@@ -47,6 +48,46 @@ const HomeScreen: React.FC = () => {
 
     const config = useLiveQuery(() => dbHelpers.getPregnancyConfig());
     const upcomingAppointments = useLiveQuery(() => dbHelpers.getUpcomingAppointments(3));
+
+    const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+    const [exactAge, setExactAge] = useState<{ months: number, weeks: number, days: number, hours: number, minutes: number, seconds: number } | null>(null);
+
+    const handleExactAgeClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleExactAgeClose = () => {
+        setAnchorEl(null);
+    };
+
+    const openExactAge = Boolean(anchorEl);
+    const exactAgeId = openExactAge ? 'exact-age-popover' : undefined;
+
+    useEffect(() => {
+        if (!config || !openExactAge) return;
+
+        const updateAge = () => {
+            const now = new Date();
+            const lmpDate = getLMPDate(config);
+            const duration = intervalToDuration({ start: lmpDate, end: now });
+            const months = (duration.years || 0) * 12 + (duration.months || 0);
+            const totalDays = duration.days || 0;
+            const weeks = Math.floor(totalDays / 7);
+            const days = totalDays % 7;
+            setExactAge({
+                months,
+                weeks,
+                days,
+                hours: duration.hours || 0,
+                minutes: duration.minutes || 0,
+                seconds: duration.seconds || 0
+            });
+        };
+
+        updateAge();
+        const intervalId = setInterval(updateAge, 1000);
+        return () => clearInterval(intervalId);
+    }, [config, openExactAge]);
 
     const getTrimesterDataByOffset = (offset: number) => {
         if (!status) return null;
@@ -260,26 +301,92 @@ const HomeScreen: React.FC = () => {
                 }}>
                     {config.firstName || 'Mama'}
                 </Typography>
-                <Typography variant="h6" sx={{
-                    color: 'text.primary',
-                    fontWeight: 600,
-                    mt: 1,
-                    fontSize: '1.2rem',
+                <Box sx={{
                     display: 'flex',
-                    alignItems: 'baseline',
-                    gap: 0.5,
+                    flexDirection: 'column',
+                    mt: 1,
                     animation: showGlowAnimation ? 'glowPulse 3s ease-in-out' : 'none',
                     '@keyframes glowPulse': {
-                        '0%, 100%': {
-                            filter: 'drop-shadow(0 0 0px transparent)',
-                        },
-                        '50%': {
-                            filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))',
-                        }
+                        '0%, 100%': { filter: 'drop-shadow(0 0 0px transparent)' },
+                        '50%': { filter: 'drop-shadow(0 0 20px rgba(255, 215, 0, 0.8))' }
                     }
                 }}>
-                    You are in <Box component="span" sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.5rem' }}>Week {status.weeks}</Box>, Day {status.days}
-                </Typography>
+                    <Typography variant="h6" sx={{
+                        color: 'text.primary',
+                        fontWeight: 600,
+                        fontSize: '1.2rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                    }}>
+                        You are in
+                        <IconButton size="small" onClick={handleExactAgeClick} sx={{ ml: 0.5, p: 0.5, bgcolor: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(4px)' }}>
+                            <Info size={18} color="rgba(0,0,0,0.6)" />
+                        </IconButton>
+                    </Typography>
+                    <Typography variant="h6" sx={{
+                        color: 'text.primary',
+                        fontWeight: 600,
+                        fontSize: '1.2rem',
+                        display: 'flex',
+                        alignItems: 'baseline',
+                        gap: 0.5,
+                    }}>
+                        <Box component="span" sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.5rem' }}>Week {status.weeks}</Box>, Day {status.days}
+                    </Typography>
+                </Box>
+
+                <Popover
+                    id={exactAgeId}
+                    open={openExactAge}
+                    anchorEl={anchorEl}
+                    onClose={handleExactAgeClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'center',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'center',
+                    }}
+                    PaperProps={{
+                        sx: { borderRadius: 3, p: 2.5, minWidth: 280, mt: 1, boxShadow: '0 8px 32px rgba(0,0,0,0.1)' }
+                    }}
+                >
+                    <Typography variant="subtitle2" fontWeight="bold" color="primary.main" gutterBottom textAlign="center" sx={{ mb: 2 }}>
+                        Exact Time Pregnant
+                    </Typography>
+                    {exactAge ? (
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, textAlign: 'center' }}>
+                            <Box sx={{ bgcolor: 'grey.50', p: 1, borderRadius: 2 }}>
+                                <Typography variant="h5" fontWeight="bold" color="primary.dark">{exactAge.months}</Typography>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Months</Typography>
+                            </Box>
+                            <Box sx={{ bgcolor: 'grey.50', p: 1, borderRadius: 2 }}>
+                                <Typography variant="h5" fontWeight="bold" color="primary.dark">{exactAge.weeks}</Typography>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Weeks</Typography>
+                            </Box>
+                            <Box sx={{ bgcolor: 'grey.50', p: 1, borderRadius: 2 }}>
+                                <Typography variant="h5" fontWeight="bold" color="primary.dark">{exactAge.days}</Typography>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Days</Typography>
+                            </Box>
+                            <Box sx={{ bgcolor: 'grey.50', p: 1, borderRadius: 2 }}>
+                                <Typography variant="h5" fontWeight="bold" color="secondary.dark">{exactAge.hours}</Typography>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Hours</Typography>
+                            </Box>
+                            <Box sx={{ bgcolor: 'grey.50', p: 1, borderRadius: 2 }}>
+                                <Typography variant="h5" fontWeight="bold" color="secondary.dark">{exactAge.minutes}</Typography>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Mins</Typography>
+                            </Box>
+                            <Box sx={{ bgcolor: 'grey.50', p: 1, borderRadius: 2 }}>
+                                <Typography variant="h5" fontWeight="bold" color="secondary.dark">{exactAge.seconds}</Typography>
+                                <Typography variant="caption" color="text.secondary" fontWeight="bold">Secs</Typography>
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Typography variant="body2" color="text.secondary" textAlign="center">Calculating...</Typography>
+                    )}
+                </Popover>
             </Box>
 
             <div className="hero-section" style={{ marginTop: 0 }}>
